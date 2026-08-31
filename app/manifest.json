@@ -1,0 +1,11 @@
+{
+  "name": "Maintenance Dashboard — Spec Navigator",
+  "short_name": "Maint. Dashboard",
+  "start_url": "navigator.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#15161a",
+  "theme_color": "#15161a",
+  "description": "Torque and maintenance spec reference for your vehicle's fasteners.",
+  "icons": []
+}

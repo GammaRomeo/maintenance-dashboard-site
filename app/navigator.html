@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance Dashboard — spec navigator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#15161a">
+<style>
+  html, body { margin:0; min-height:100%; background:#15161a; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#f5f5f0; }
+  #app { max-width:640px; margin:0 auto; padding:16px 16px 60px; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  header h1 { font-size:17px; margin:0; font-weight:600; }
+  .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+
+  select, input[type=text] { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
+  .field { margin-bottom:12px; }
+  .field label { display:block; color:#9a9da3; font-size:12px; margin-bottom:5px; }
+
+  .tierRow { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 16px; }
+  .tierChip { background:rgba(20,21,25,0.85); border:1px solid #3a3c40; color:#c8cad0; border-radius:20px; padding:6px 12px; font-size:12px; cursor:pointer; user-select:none; }
+  .tierChip.active { border-color:#2dd4bf; color:#2dd4bf; }
+
+  .systemGroup { margin-bottom:6px; border:1px solid #22242a; border-radius:10px; overflow:hidden; }
+  .systemHeader { background:#1a1b1f; padding:12px 14px; font-size:14px; font-weight:600; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .systemHeader .count { color:#6b6e74; font-size:11.5px; font-weight:400; }
+  .subAssembly { padding:4px 14px 8px; }
+  .subAssembly h4 { color:#7a7f87; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:10px 0 4px; }
+
+  .fastener { border-bottom:1px solid #22242a; padding:9px 0; }
+  .fastener:last-child { border-bottom:none; }
+  .fastener .fname { color:#f0f0ec; font-size:13.5px; font-weight:500; }
+  .fastener .fspec { color:#9fd3c7; font-size:12.5px; margin-top:2px; }
+  .fastener .fvariant { color:#7a7f87; font-size:11.5px; margin-top:2px; }
+  .badge { display:inline-block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+  .badge.official { background:#12332b; color:#3fdca0; }
+  .badge.community { background:#332912; color:#e0ab3f; }
+  .badge.tuner { background:#2a1233; color:#c68fe6; }
+  .badge.self-reported { background:#1a2333; color:#6fa8e0; }
+
+  .emptyState { text-align:center; padding:40px 20px; color:#9a9da3; }
+  .emptyState h2 { color:#e8e8e2; font-size:16px; margin:0 0 8px; }
+  .emptyState p { font-size:13px; line-height:1.5; }
+  .ctaBtn { background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:11px 18px; font-size:13.5px; font-weight:600; cursor:pointer; margin-top:14px; }
+  .secondaryBtn { background:none; border:1px solid #3a3c40; border-radius:8px; color:#c8cad0; padding:9px 16px; font-size:13px; cursor:pointer; margin-top:10px; }
+
+  #selfReportForm { display:none; background:#1a1b1f; border:1px solid #2f3238; border-radius:12px; padding:16px; margin-top:14px; }
+  #selfReportForm.open { display:block; }
+  #selfReportForm h3 { font-size:14px; margin:0 0 4px; }
+  .warnBox { background:#2a2010; border:1px solid #4a3a1a; border-radius:8px; padding:10px 12px; font-size:12px; color:#e0c08a; line-height:1.4; margin:10px 0; }
+  .checkboxRow { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:#a7abb2; margin:10px 0; }
+  .checkboxRow input { width:auto; margin-top:2px; }
+  #srError { color:#e24b4a; font-size:12px; display:none; margin-top:6px; }
+  #srSuccess { color:#3fdca0; font-size:12px; display:none; margin-top:6px; }
+
+  #consentGate { position:fixed; inset:0; background:rgba(10,11,13,0.96); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #consentGate .box { max-width:440px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px 22px 20px; }
+  #consentGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 12px; }
+  #consentGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0 0 10px; }
+  #consentGate .accept { width:100%; margin-top:8px; background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:12px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  .searchRow { margin-bottom:10px; }
+  a.link3d { color:#2dd4bf; font-size:12.5px; text-decoration:none; }
+</style>
+</head>
+<body>
+<div id="consentGate">
+  <div class="box">
+    <h2>Before you start</h2>
+    <p>Torque values and specs shown here are reference information only, compiled from a mix of official service literature, community/tuner sources, and — where marked — <strong>self-reported by other users and not independently verified</strong>. Each entry is labeled with its source tier.</p>
+    <p>Always verify safety-critical specs — wheels, suspension, brakes, steering — against OEM documentation before doing any work. This app is not affiliated with, endorsed by, or sponsored by any vehicle manufacturer.</p>
+    <p>Use of this app and its data is at your own risk; see full terms for details.</p>
+    <button class="accept" id="acceptDisclaimer">I understand, continue</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Maintenance Dashboard — spec navigator</h1>
+    <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
+  </header>
+
+  <div class="field">
+    <label for="vehicleSelect">Vehicle</label>
+    <select id="vehicleSelect"></select>
+  </div>
+
+  <div id="vehicle3dLink" style="margin-bottom:12px; display:none;">
+    <a class="link3d" id="link3dAnchor" href="#">Open the full 3D explorer for this vehicle →</a>
+  </div>
+
+  <div id="dataView" style="display:none;">
+    <div class="searchRow">
+      <input type="text" id="searchInput" placeholder="Search fasteners…">
+    </div>
+    <div class="tierRow" id="tierRow"></div>
+    <div id="resultsWrap"></div>
+  </div>
+
+  <div id="emptyState" class="emptyState" style="display:none;">
+    <h2>No spec data yet for this vehicle</h2>
+    <p>We haven't researched or received fastener data for this one. If you know your vehicle's torque specs, you can add what you know below — it'll be tagged as self-reported and kept separate from sourced data.</p>
+    <button class="ctaBtn" id="showSelfReportBtn">Add what you know</button>
+  </div>
+
+  <div id="selfReportForm">
+    <h3>Add a fastener spec</h3>
+    <div class="warnBox">
+      Self-reported data is <strong>not verified by Maintenance Dashboard</strong> and is shown separately from sourced entries. Don't submit anything you're not confident about — other users may rely on it. Never guess a safety-critical spec (wheels, suspension, brakes, steering) from memory alone.
+    </div>
+    <div class="field">
+      <label>Vehicle (make / model / year, if not already selected above)</label>
+      <input type="text" id="srVehicle">
+    </div>
+    <div class="field">
+      <label>System (e.g. Engine, Suspension, Brakes)</label>
+      <input type="text" id="srSystem">
+    </div>
+    <div class="field">
+      <label>Sub-assembly / area</label>
+      <input type="text" id="srSubAssembly">
+    </div>
+    <div class="field">
+      <label>Fastener name</label>
+      <input type="text" id="srFastenerName">
+    </div>
+    <div class="field">
+      <label>Torque value</label>
+      <input type="text" id="srTorqueValue" placeholder="e.g. 35 Nm">
+    </div>
+    <div class="field">
+      <label>Notes / where this came from</label>
+      <input type="text" id="srNotes" placeholder="e.g. from my own service, torque wrench + factory manual page 42">
+    </div>
+    <div class="checkboxRow">
+      <input type="checkbox" id="srConfirm">
+      <label for="srConfirm">I confirm this is accurate to the best of my knowledge, and I understand it will be shown to other users as unverified, self-reported data.</label>
+    </div>
+    <div id="srError">Please fill in the fastener name, torque value, and confirm the checkbox above.</div>
+    <div id="srSuccess">Saved. Thanks for contributing.</div>
+    <button class="ctaBtn" id="srSubmitBtn">Save</button>
+    <button class="secondaryBtn" id="srCancelBtn">Cancel</button>
+  </div>
+</div>
+
+<script src="../data/fastener-data.js"></script>
+<script>
+const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
+const SELF_REPORT_KEY = 'maintenance-dashboard-selfreported-v1';
+
+// Wave-2 contribution pipeline, stubbed for a local-only rollout: submitSelfReport()
+// currently only writes to this device's localStorage. To turn on real cross-user
+// collection later, point SELF_REPORT_ENDPOINT at a webhook/serverless function that
+// accepts a JSON POST of one record — the call site below is already wired, it just
+// no-ops while this is null. No user-side export/copy step is needed either way.
+const SELF_REPORT_ENDPOINT = null;
+
+const consentGate = document.getElementById('consentGate');
+function showGate(){ consentGate.style.display = 'flex'; }
+function hideGate(){ consentGate.style.display = 'none'; }
+if (localStorage.getItem(CONSENT_KEY) === 'accepted') { hideGate(); } else { showGate(); }
+document.getElementById('acceptDisclaimer').addEventListener('click', () => {
+  try { localStorage.setItem(CONSENT_KEY, 'accepted'); } catch (e) {}
+  hideGate();
+});
+document.getElementById('reshowDisclaimer').addEventListener('click', showGate);
+
+function loadSelfReported() {
+  try {
+    return JSON.parse(localStorage.getItem(SELF_REPORT_KEY) || '{}');
+  } catch (e) { return {}; }
+}
+function saveSelfReported(all) {
+  try { localStorage.setItem(SELF_REPORT_KEY, JSON.stringify(all)); } catch (e) {}
+}
+async function submitSelfReport(vehicleKey, record) {
+  const all = loadSelfReported();
+  if (!all[vehicleKey]) all[vehicleKey] = [];
+  all[vehicleKey].push(record);
+  saveSelfReported(all);
+  if (SELF_REPORT_ENDPOINT) {
+    try {
+      await fetch(SELF_REPORT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record),
+      });
+    } catch (e) { console.warn('Self-report endpoint unreachable, kept locally:', e); }
+  }
+}
+
+let currentVehicle = null;   // registry entry, or null for an unlisted vehicle
+let currentFasteners = [];   // sourced + local self-reported, combined
+let activeTiers = new Set(['official', 'community', 'tuner', 'self-reported']);
+
+const vehicleSelect = document.getElementById('vehicleSelect');
+const dataView = document.getElementById('dataView');
+const emptyState = document.getElementById('emptyState');
+const vehicle3dLink = document.getElementById('vehicle3dLink');
+
+async function init() {
+  const registry = await fetch('../data/vehicles/registry.json').then(r => r.json());
+  registry.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = `${v.make} ${v.model} (${v.yearRange})`;
+    vehicleSelect.appendChild(opt);
+  });
+  const otherOpt = document.createElement('option');
+  otherOpt.value = '__other__';
+  otherOpt.textContent = "My vehicle isn't listed";
+  vehicleSelect.appendChild(otherOpt);
+
+  window.__registry = registry;
+  vehicleSelect.addEventListener('change', () => selectVehicle(vehicleSelect.value));
+  if (registry.length) selectVehicle(registry[0].id);
+}
+
+async function selectVehicle(id) {
+  document.getElementById('selfReportForm').classList.remove('open');
+  if (id === '__other__') {
+    currentVehicle = null;
+    currentFasteners = [];
+    vehicle3dLink.style.display = 'none';
+    showEmpty();
+    return;
+  }
+  const entry = window.__registry.find(v => v.id === id);
+  currentVehicle = entry;
+  const dataset = await fetch(`../data/vehicles/${entry.dataFile}`).then(r => r.json());
+  const selfReported = (loadSelfReported()[entry.id] || []).map(r => ({ ...r, sourceTier: 'self-reported' }));
+  currentFasteners = dataset.fasteners.concat(selfReported);
+
+  if (entry.has3D) {
+    vehicle3dLink.style.display = 'block';
+    document.getElementById('link3dAnchor').href = 'a3-explorer-standalone.html';
+  } else {
+    vehicle3dLink.style.display = 'none';
+  }
+
+  if (!currentFasteners.length) {
+    showEmpty();
+  } else {
+    showData();
+    renderTierChips();
+    renderResults();
+  }
+}
+
+function showEmpty() {
+  dataView.style.display = 'none';
+  emptyState.style.display = 'block';
+}
+function showData() {
+  dataView.style.display = 'block';
+  emptyState.style.display = 'none';
+}
+
+function renderTierChips() {
+  const tierRow = document.getElementById('tierRow');
+  tierRow.innerHTML = '';
+  SOURCE_TIERS.forEach(tier => {
+    const chip = document.createElement('div');
+    chip.className = 'tierChip' + (activeTiers.has(tier) ? ' active' : '');
+    chip.textContent = tier;
+    chip.addEventListener('click', () => {
+      if (activeTiers.has(tier)) activeTiers.delete(tier); else activeTiers.add(tier);
+      renderTierChips();
+      renderResults();
+    });
+    tierRow.appendChild(chip);
+  });
+}
+
+function renderResults() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  let filtered = filterByTiers(currentFasteners, [...activeTiers]);
+  if (query) {
+    filtered = filtered.filter(f => f.fastenerName.toLowerCase().includes(query));
+  }
+  const grouped = groupFastenersBySystem(filtered);
+  const wrap = document.getElementById('resultsWrap');
+  wrap.innerHTML = '';
+  Object.keys(grouped).sort().forEach(system => {
+    const subAssemblies = grouped[system];
+    const total = Object.values(subAssemblies).reduce((n, arr) => n + arr.length, 0);
+    const group = document.createElement('div');
+    group.className = 'systemGroup';
+    const header = document.createElement('div');
+    header.className = 'systemHeader';
+    header.innerHTML = `<span>${system}</span><span class="count">${total}</span>`;
+    const body = document.createElement('div');
+    body.style.display = query ? 'block' : 'none';
+    header.addEventListener('click', () => { body.style.display = body.style.display === 'none' ? 'block' : 'none'; });
+    Object.keys(subAssemblies).forEach(sub => {
+      const subDiv = document.createElement('div');
+      subDiv.className = 'subAssembly';
+      subDiv.innerHTML = `<h4>${sub}</h4>`;
+      subAssemblies[sub].forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'fastener';
+        row.innerHTML = `
+          <div class="fname">${f.fastenerName}<span class="badge ${f.sourceTier}">${f.sourceTier}</span></div>
+          <div class="fspec">${f.torqueValue}</div>
+          <div class="fvariant">${f.sourceNotes || ''}</div>`;
+        subDiv.appendChild(row);
+      });
+      body.appendChild(subDiv);
+    });
+    group.appendChild(header);
+    group.appendChild(body);
+    wrap.appendChild(group);
+  });
+  if (!Object.keys(grouped).length) {
+    wrap.innerHTML = '<p style="color:#7a7f87;font-size:13px;">No fasteners match this search/filter.</p>';
+  }
+}
+document.getElementById('searchInput').addEventListener('input', renderResults);
+
+document.getElementById('showSelfReportBtn').addEventListener('click', () => {
+  document.getElementById('selfReportForm').classList.add('open');
+  if (currentVehicle) document.getElementById('srVehicle').value = `${currentVehicle.make} ${currentVehicle.model}`;
+});
+document.getElementById('srCancelBtn').addEventListener('click', () => {
+  document.getElementById('selfReportForm').classList.remove('open');
+});
+document.getElementById('srSubmitBtn').addEventListener('click', async () => {
+  const fastenerName = document.getElementById('srFastenerName').value.trim();
+  const torqueValue = document.getElementById('srTorqueValue').value.trim();
+  const confirmed = document.getElementById('srConfirm').checked;
+  const errEl = document.getElementById('srError');
+  const okEl = document.getElementById('srSuccess');
+  if (!fastenerName || !torqueValue || !confirmed) {
+    errEl.style.display = 'block';
+    okEl.style.display = 'none';
+    return;
+  }
+  errEl.style.display = 'none';
+  const vehicleLabel = document.getElementById('srVehicle').value.trim() || 'Unlisted vehicle';
+  const vehicleKey = currentVehicle ? currentVehicle.id : `unlisted:${vehicleLabel.toLowerCase()}`;
+  const record = {
+    id: `${vehicleKey}__self__${fastenerName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
+    vehicleId: vehicleKey,
+    system: document.getElementById('srSystem').value.trim() || 'Uncategorized',
+    subAssembly: document.getElementById('srSubAssembly').value.trim() || 'Self-reported',
+    fastenerName,
+    torqueValue,
+    angleStages: null,
+    sourceTier: 'self-reported',
+    sourceNotes: document.getElementById('srNotes').value.trim(),
+    conflictFlag: false,
+    singleUseFlag: false,
+    zoneId: null,
+    lastVerifiedDate: null,
+  };
+  await submitSelfReport(vehicleKey, record);
+  okEl.style.display = 'block';
+  ['srSystem','srSubAssembly','srFastenerName','srTorqueValue','srNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('srConfirm').checked = false;
+  if (currentVehicle) {
+    currentFasteners.push(record);
+    showData();
+    renderTierChips();
+    renderResults();
+  }
+});
+
+init();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch((e) => console.warn('SW registration failed:', e));
+  });
+}
+</script>
+</body>
+</html>
