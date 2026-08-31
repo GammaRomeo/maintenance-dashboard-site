@@ -6,6 +6,7 @@
     "platform": "8V / 8V.5 (MQB)",
     "yearRange": "2013-2020",
     "dataFile": "audi-a3-8v.json",
-    "has3D": true
+    "has3D": true,
+    "vehicleClass": "sedan"
   }
 ]

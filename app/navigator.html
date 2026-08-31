@@ -85,6 +85,9 @@
     <select id="vehicleSelect"></select>
   </div>
 
+  <div id="vehicleDiagramLink" style="margin-bottom:12px; display:none;">
+    <a class="link3d" id="diagramLinkAnchor" href="#">Open the diagram view for this vehicle →</a>
+  </div>
   <div id="vehicle3dLink" style="margin-bottom:12px; display:none;">
     <a class="link3d" id="link3dAnchor" href="#">Open the full 3D explorer for this vehicle →</a>
   </div>
@@ -225,6 +228,7 @@ async function selectVehicle(id) {
     currentVehicle = null;
     currentFasteners = [];
     vehicle3dLink.style.display = 'none';
+    document.getElementById('vehicleDiagramLink').style.display = 'none';
     document.getElementById('profileLinkAnchor').href = 'vehicle-profile.html';
     showEmpty();
     return;
@@ -235,6 +239,9 @@ async function selectVehicle(id) {
   const dataset = await fetch(`../data/vehicles/${entry.dataFile}`).then(r => r.json());
   const selfReported = (loadSelfReported()[entry.id] || []).map(r => ({ ...r, sourceTier: 'self-reported' }));
   currentFasteners = dataset.fasteners.concat(selfReported);
+
+  document.getElementById('vehicleDiagramLink').style.display = 'block';
+  document.getElementById('diagramLinkAnchor').href = `silhouette-explorer.html?vehicle=${encodeURIComponent(entry.id)}`;
 
   if (entry.has3D) {
     vehicle3dLink.style.display = 'block';

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance Dashboard — diagram view</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#15161a">
+<style>
+  html, body { margin:0; height:100%; background:#15161a; overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#f5f5f0; }
+  #wrap { position:absolute; inset:0; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 6px; }
+  header h1 { font-size:15px; margin:0; font-weight:600; }
+  .backLink { color:#2dd4bf; font-size:12.5px; text-decoration:none; }
+  .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+  #svgWrap { flex:1; display:flex; align-items:center; justify-content:center; min-height:0; padding:10px; }
+  svg#car { height:100%; max-width:100%; }
+  .bodyShape { fill:#22242a; stroke:#3a3c40; stroke-width:2; }
+  .glassShape { fill:#1a2028; stroke:#2a3038; stroke-width:1; }
+  .wheelShape { fill:#141518; stroke:#2a2c30; stroke-width:1; }
+  .zoneMarker { cursor:pointer; }
+  .zoneMarker circle.ring { fill:none; stroke-width:2; opacity:0.5; }
+  .zoneMarker circle.dot { stroke:#0c0d0f; stroke-width:2; }
+  .zoneMarker text { fill:#0c0d0f; font-size:11px; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+  .zoneMarker.active circle.dot { stroke:#f5f5f0; }
+
+  #legend { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding:0 12px 10px; }
+  .chip { background:rgba(255,255,255,0.06); border:1px solid #3a3c40; color:#e8e8e2; border-radius:20px; padding:6px 12px; font-size:11.5px; cursor:pointer; }
+  .chip.active { border-color:#2dd4bf; color:#2dd4bf; }
+
+  #panel { position:absolute; bottom:0; left:0; right:0; background:rgba(18,19,22,0.98); border-top:1px solid #2a2d33; padding:0 18px 20px; transform:translateY(100%); transition:transform 0.25s ease; max-height:66%; overflow-y:auto; touch-action:pan-y; }
+  #panel.open { transform:translateY(0); }
+  #dragHandle { position:sticky; top:0; background:rgba(18,19,22,0.98); padding:10px 0 8px; z-index:2; }
+  #dragHandle .grip { width:36px; height:4px; background:#3a3c40; border-radius:2px; margin:0 auto 8px; }
+  #panel h3 { margin:0 0 2px; color:#f5f5f0; font-size:16px; font-weight:500; }
+  #panel .note { color:#7a7f87; font-size:12px; margin:0 0 10px; }
+  .sectionlabel { color:#6b6e74; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:12px 0 6px; }
+  .fastener { border-bottom:1px solid #22242a; padding:8px 0; }
+  .fastener .fname { color:#f0f0ec; font-size:13.5px; font-weight:500; }
+  .fastener .fspec { color:#9fd3c7; font-size:12.5px; margin-top:2px; }
+  .fastener .fvariant { color:#7a7f87; font-size:11.5px; margin-top:2px; }
+  .badge { display:inline-block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+  .badge.official { background:#12332b; color:#3fdca0; }
+  .badge.community { background:#332912; color:#e0ab3f; }
+  .badge.tuner { background:#2a1233; color:#c68fe6; }
+  .badge.self-reported { background:#1a2333; color:#6fa8e0; }
+  ul.modlist { margin:0 0 10px; padding-left:18px; }
+  ul.modlist li { color:#e8e8e2; font-size:13px; margin-bottom:4px; }
+  .addrow { display:flex; gap:8px; margin-top:6px; }
+  .addrow input { flex:1; background:#1e2126; border:1px solid #3a3c40; border-radius:6px; color:#f5f5f0; padding:8px 10px; font-size:13px; }
+  .addrow button { background:#2dd4bf; border:none; border-radius:6px; color:#04342c; padding:8px 16px; font-size:13px; font-weight:500; cursor:pointer; }
+  #closePanel { background:none; border:1px solid #3a3c40; border-radius:8px; color:#c8cad0; padding:4px 10px; font-size:11px; cursor:pointer; float:right; }
+  .noDataMsg { color:#7a7f87; font-size:13px; padding:8px 0; }
+
+  #consentGate { position:fixed; inset:0; background:rgba(10,11,13,0.96); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #consentGate .box { max-width:440px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px 22px 20px; }
+  #consentGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 12px; }
+  #consentGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0 0 10px; }
+  #consentGate .accept { width:100%; margin-top:8px; background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:12px; font-size:14px; font-weight:600; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="consentGate">
+  <div class="box">
+    <h2>Before you start</h2>
+    <p>Torque values and specs shown here are reference information only — official, community/tuner, and self-reported sources are each labeled. Not a substitute for your vehicle's official service manual.</p>
+    <p>Always verify safety-critical specs — wheels, suspension, brakes, steering — against OEM documentation before doing any work. This app is not affiliated with, endorsed by, or sponsored by any vehicle manufacturer.</p>
+    <button class="accept" id="acceptDisclaimer">I understand, continue</button>
+  </div>
+</div>
+
+<div id="wrap">
+  <header>
+    <div>
+      <a class="backLink" href="navigator.html">&larr; back to spec navigator</a>
+      <h1 id="vehicleTitle" style="margin-top:4px;">Diagram view</h1>
+    </div>
+    <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
+  </header>
+  <div id="svgWrap">
+    <svg id="car" viewBox="0 0 300 560" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div id="legend"></div>
+  <div id="panel">
+    <div id="dragHandle">
+      <div class="grip"></div>
+      <button id="closePanel">close</button>
+      <h3 id="p-title"></h3>
+    </div>
+    <p class="note" id="p-note"></p>
+    <div class="sectionlabel">Torque specs &amp; fasteners</div>
+    <div id="p-fasteners"></div>
+    <div class="sectionlabel">Logged modifications</div>
+    <ul class="modlist" id="p-mods"></ul>
+    <div class="addrow">
+      <input type="text" id="p-input" placeholder="Add a modification">
+      <button id="p-add">Add</button>
+    </div>
+  </div>
+</div>
+
+<script src="../data/fastener-data.js"></script>
+<script src="../data/silhouettes.js"></script>
+<script>
+const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
+const MODLOG_KEY = 'maintenance-dashboard-modlog-v1';
+const COLORS = { engine:'#D85A30', frontLeft:'#378ADD', frontRight:'#378ADD', rearLeft:'#378ADD', rearRight:'#378ADD', exhaust:'#EF9F27', interior:'#9C7BD9' };
+const ZONE_LABELS = { engine:'Engine bay', frontLeft:'Front left', frontRight:'Front right', rearLeft:'Rear left', rearRight:'Rear right', exhaust:'Exhaust', interior:'Interior / body' };
+
+const consentGate = document.getElementById('consentGate');
+function showGate(){ consentGate.style.display = 'flex'; }
+function hideGate(){ consentGate.style.display = 'none'; }
+if (localStorage.getItem(CONSENT_KEY) === 'accepted') { hideGate(); } else { showGate(); }
+document.getElementById('acceptDisclaimer').addEventListener('click', () => {
+  try { localStorage.setItem(CONSENT_KEY, 'accepted'); } catch (e) {}
+  hideGate();
+});
+document.getElementById('reshowDisclaimer').addEventListener('click', showGate);
+
+function loadModLog() {
+  try { return JSON.parse(localStorage.getItem(MODLOG_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveModLog(all) {
+  try { localStorage.setItem(MODLOG_KEY, JSON.stringify(all)); } catch (e) {}
+}
+function getMods(vehicleId, zoneId) {
+  const all = loadModLog();
+  return (all[vehicleId] && all[vehicleId][zoneId]) || [];
+}
+function addMod(vehicleId, zoneId, text) {
+  const all = loadModLog();
+  if (!all[vehicleId]) all[vehicleId] = {};
+  if (!all[vehicleId][zoneId]) all[vehicleId][zoneId] = [];
+  all[vehicleId][zoneId].push(text);
+  saveModLog(all);
+}
+
+const params = new URLSearchParams(window.location.search);
+const vehicleId = params.get('vehicle');
+let currentZone = null;
+let vehicleEntry = null;
+let fastenersByZone = {};
+
+function drawSilhouette(vehicleClass) {
+  const cls = getSilhouetteClass(vehicleClass);
+  const svg = document.getElementById('car');
+  svg.innerHTML = `
+    <path class="bodyShape" d="${cls.bodyPath}"></path>
+    <path class="glassShape" d="${cls.windshieldPath}"></path>
+    <path class="glassShape" d="${cls.rearWindowPath}"></path>
+    ${cls.wheels.map(w => `<rect class="wheelShape" x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="${w.rx}"></rect>`).join('')}
+  `;
+  Object.entries(cls.zones).forEach(([zoneId, pos]) => {
+    const color = COLORS[zoneId] || '#2dd4bf';
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'zoneMarker');
+    g.setAttribute('data-zone', zoneId);
+    g.innerHTML = `
+      <circle class="ring" cx="${pos.cx}" cy="${pos.cy}" r="20" stroke="${color}"></circle>
+      <circle class="dot" cx="${pos.cx}" cy="${pos.cy}" r="13" fill="${color}"></circle>
+      <text x="${pos.cx}" y="${pos.cy}">${(fastenersByZone[zoneId] || []).length}</text>
+    `;
+    g.addEventListener('click', () => openZone(zoneId));
+    svg.appendChild(g);
+  });
+}
+
+function renderLegend() {
+  const legend = document.getElementById('legend');
+  legend.innerHTML = '';
+  Object.keys(ZONE_LABELS).forEach(zoneId => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.id = 'chip-' + zoneId;
+    chip.textContent = ZONE_LABELS[zoneId];
+    chip.addEventListener('click', () => openZone(zoneId));
+    legend.appendChild(chip);
+  });
+}
+
+function openZone(zoneId) {
+  currentZone = zoneId;
+  document.querySelectorAll('.zoneMarker').forEach(m => m.classList.toggle('active', m.dataset.zone === zoneId));
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.id === 'chip-' + zoneId));
+
+  document.getElementById('p-title').textContent = ZONE_LABELS[zoneId];
+  const fasteners = fastenersByZone[zoneId] || [];
+  const fWrap = document.getElementById('p-fasteners');
+  document.getElementById('p-note').textContent = fasteners.length
+    ? `${fasteners.length} fastener${fasteners.length === 1 ? '' : 's'} on record`
+    : '';
+  fWrap.innerHTML = fasteners.length
+    ? fasteners.map(f => `
+      <div class="fastener">
+        <div class="fname">${f.fastenerName}<span class="badge ${f.sourceTier}">${f.sourceTier}</span></div>
+        <div class="fspec">${f.torqueValue}</div>
+        <div class="fvariant">${f.sourceNotes || ''}</div>
+      </div>`).join('')
+    : '<p class="noDataMsg">No spec data recorded for this zone yet.</p>';
+
+  renderMods();
+  document.getElementById('panel').classList.add('open');
+}
+
+function renderMods() {
+  const mods = getMods(vehicleId, currentZone);
+  const list = document.getElementById('p-mods');
+  list.innerHTML = mods.length ? mods.map(m => '<li>' + m + '</li>').join('') : '<li style="color:#5c6067;">No mods logged yet</li>';
+}
+document.getElementById('p-add').addEventListener('click', () => {
+  const inp = document.getElementById('p-input');
+  if (!inp.value.trim() || !currentZone) return;
+  addMod(vehicleId, currentZone, inp.value.trim());
+  inp.value = '';
+  renderMods();
+});
+document.getElementById('closePanel').addEventListener('click', () => {
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.zoneMarker').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+});
+
+async function init() {
+  const registry = await fetch('../data/vehicles/registry.json').then(r => r.json());
+  vehicleEntry = registry.find(v => v.id === vehicleId);
+  if (!vehicleEntry) {
+    document.getElementById('vehicleTitle').textContent = 'Vehicle not found';
+    drawSilhouette('sedan');
+    renderLegend();
+    return;
+  }
+  document.getElementById('vehicleTitle').textContent = `${vehicleEntry.make} ${vehicleEntry.model}`;
+  const dataset = await fetch(`../data/vehicles/${vehicleEntry.dataFile}`).then(r => r.json());
+  fastenersByZone = groupFastenersByZone(dataset.fasteners);
+  drawSilhouette(vehicleEntry.vehicleClass);
+  renderLegend();
+}
+init();
+</script>
+</body>
+</html>
