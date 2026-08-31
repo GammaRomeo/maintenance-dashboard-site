@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance Dashboard — vehicle profile</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#15161a">
+<style>
+  html, body { margin:0; min-height:100%; background:#15161a; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#f5f5f0; }
+  #app { max-width:640px; margin:0 auto; padding:16px 16px 60px; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  header h1 { font-size:17px; margin:0; font-weight:600; }
+  .backLink { color:#2dd4bf; font-size:12.5px; text-decoration:none; display:inline-block; margin-bottom:14px; }
+  .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+  p.lede { color:#9a9da3; font-size:13px; line-height:1.5; margin:0 0 18px; }
+
+  input[type=text], textarea { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; font-family:inherit; }
+  textarea { resize:vertical; min-height:56px; }
+  .field { margin-bottom:12px; }
+  .field label { display:block; color:#9a9da3; font-size:12px; margin-bottom:5px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  .category { border:1px solid #22242a; border-radius:10px; padding:14px; margin-bottom:12px; }
+  .category h3 { margin:0 0 10px; font-size:14px; }
+  .checkGrid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .checkItem { display:flex; align-items:center; gap:6px; background:#1e2126; border:1px solid #3a3c40; border-radius:20px; padding:6px 12px; font-size:12.5px; cursor:pointer; user-select:none; }
+  .checkItem.checked { border-color:#2dd4bf; color:#2dd4bf; }
+  .checkItem input { display:none; }
+  .category textarea { font-size:13px; }
+  .category .noteLabel { color:#7a7f87; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 5px; }
+
+  .warnBox { background:#2a2010; border:1px solid #4a3a1a; border-radius:8px; padding:10px 12px; font-size:12px; color:#e0c08a; line-height:1.4; margin:14px 0; }
+  .ctaBtn { background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:12px 20px; font-size:14px; font-weight:600; cursor:pointer; width:100%; margin-top:8px; }
+  #saveSuccess { color:#3fdca0; font-size:12.5px; display:none; margin-top:8px; text-align:center; }
+
+  #consentGate { position:fixed; inset:0; background:rgba(10,11,13,0.96); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #consentGate .box { max-width:440px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px 22px 20px; }
+  #consentGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 12px; }
+  #consentGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0 0 10px; }
+  #consentGate .accept { width:100%; margin-top:8px; background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:12px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  .sectionlabel { color:#6b6e74; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px; }
+</style>
+</head>
+<body>
+<div id="consentGate">
+  <div class="box">
+    <h2>Before you start</h2>
+    <p>Torque values and specs elsewhere in this app are reference information only, compiled from a mix of official service literature, community/tuner sources, and — where marked — self-reported by other users and not independently verified.</p>
+    <p>Always verify safety-critical specs — wheels, suspension, brakes, steering — against OEM documentation before doing any work. This app is not affiliated with, endorsed by, or sponsored by any vehicle manufacturer.</p>
+    <p>Use of this app and its data is at your own risk; see full terms for details.</p>
+    <button class="accept" id="acceptDisclaimer">I understand, continue</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Vehicle profile</h1>
+    <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
+  </header>
+  <a class="backLink" href="navigator.html">&larr; back to spec navigator</a>
+  <p class="lede">Tell us about your vehicle and what's been done to it. Check off common modifications, and use the open text under each category for anything specific to your build. Takes about two minutes — the more detail you give, the more useful this gets for you and for other owners of the same vehicle.</p>
+
+  <div class="field">
+    <label>Vehicle (make / model / year)</label>
+    <input type="text" id="pfVehicle">
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label>Trim</label>
+      <input type="text" id="pfTrim">
+    </div>
+    <div class="field">
+      <label>Engine</label>
+      <input type="text" id="pfEngine">
+    </div>
+  </div>
+
+  <div class="sectionlabel">Modifications by category</div>
+  <div id="categoriesWrap"></div>
+
+  <div class="sectionlabel">Anything not covered above?</div>
+  <div class="field">
+    <textarea id="pfGeneralNotes" placeholder="Any other configuration details, known issues, or context about this vehicle worth recording."></textarea>
+  </div>
+
+  <div class="sectionlabel">Paste a receipt or a link (optional)</div>
+  <div class="warnBox">
+    This is stored as raw text only — nothing is scanned, parsed, or automatically imported yet. It's kept alongside your profile so it can be reviewed and worked into the spec/mod data later.
+  </div>
+  <div class="field">
+    <textarea id="pfImportText" placeholder="Paste receipt text, a part number list, or a link to a build thread / mechanic write-up."></textarea>
+  </div>
+
+  <button class="ctaBtn" id="saveBtn">Save vehicle profile</button>
+  <div id="saveSuccess">Saved. You can come back and update this any time.</div>
+</div>
+
+<script src="../data/mod-taxonomy.js"></script>
+<script>
+const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
+const PROFILE_KEY = 'maintenance-dashboard-vehicle-profiles-v1';
+
+// Local-first, same pattern as the self-report fastener form in navigator.html.
+// Submissions stay on this device until PROFILE_SUBMIT_ENDPOINT points at a real
+// collection endpoint — that's what "improve the survey from user data over time"
+// needs, and it doesn't exist yet. No user-side export step either way once it does.
+const PROFILE_SUBMIT_ENDPOINT = null;
+
+const consentGate = document.getElementById('consentGate');
+function showGate(){ consentGate.style.display = 'flex'; }
+function hideGate(){ consentGate.style.display = 'none'; }
+if (localStorage.getItem(CONSENT_KEY) === 'accepted') { hideGate(); } else { showGate(); }
+document.getElementById('acceptDisclaimer').addEventListener('click', () => {
+  try { localStorage.setItem(CONSENT_KEY, 'accepted'); } catch (e) {}
+  hideGate();
+});
+document.getElementById('reshowDisclaimer').addEventListener('click', showGate);
+
+function loadProfiles() {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveProfiles(all) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(all)); } catch (e) {}
+}
+async function submitVehicleProfile(vehicleKey, profile) {
+  const all = loadProfiles();
+  all[vehicleKey] = profile;
+  saveProfiles(all);
+  if (PROFILE_SUBMIT_ENDPOINT) {
+    try {
+      await fetch(PROFILE_SUBMIT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+    } catch (e) { console.warn('Profile endpoint unreachable, kept locally:', e); }
+  }
+}
+
+function vehicleKeyFromParams() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('vehicle') || null;
+}
+
+const categoriesWrap = document.getElementById('categoriesWrap');
+MOD_TAXONOMY.forEach(cat => {
+  const div = document.createElement('div');
+  div.className = 'category';
+  div.dataset.system = cat.system;
+  const checksHtml = cat.common.map(item => `
+    <label class="checkItem" data-item="${item}">
+      <input type="checkbox" value="${item}">
+      <span>${item}</span>
+    </label>`).join('');
+  div.innerHTML = `
+    <h3>${cat.system}</h3>
+    <div class="checkGrid">${checksHtml}</div>
+    <div class="noteLabel">Anything else in ${cat.system.toLowerCase()}?</div>
+    <textarea class="categoryNotes" placeholder="Optional details specific to your build"></textarea>`;
+  div.querySelectorAll('.checkItem').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = chip.querySelector('input');
+      input.checked = !input.checked;
+      chip.classList.toggle('checked', input.checked);
+    });
+  });
+  categoriesWrap.appendChild(div);
+});
+
+const vehicleKey = vehicleKeyFromParams();
+const existing = vehicleKey ? loadProfiles()[vehicleKey] : null;
+if (existing) {
+  document.getElementById('pfVehicle').value = existing.vehicleLabel || '';
+  document.getElementById('pfTrim').value = existing.trim || '';
+  document.getElementById('pfEngine').value = existing.engine || '';
+  document.getElementById('pfGeneralNotes').value = existing.generalNotes || '';
+  document.getElementById('pfImportText').value = existing.pastedImportText || '';
+  (existing.modifications || []).forEach(modCat => {
+    const div = categoriesWrap.querySelector(`.category[data-system="${modCat.system}"]`);
+    if (!div) return;
+    (modCat.commonSelected || []).forEach(item => {
+      const chip = div.querySelector(`.checkItem[data-item="${item}"]`);
+      if (chip) { chip.classList.add('checked'); chip.querySelector('input').checked = true; }
+    });
+    div.querySelector('.categoryNotes').value = modCat.notes || '';
+  });
+} else if (vehicleKey) {
+  document.getElementById('pfVehicle').value = vehicleKey;
+  fetch('../data/vehicles/registry.json').then(r => r.json()).then(registry => {
+    const entry = registry.find(v => v.id === vehicleKey);
+    if (entry) document.getElementById('pfVehicle').value = `${entry.make} ${entry.model} (${entry.yearRange})`;
+  }).catch(() => {});
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const vehicleLabel = document.getElementById('pfVehicle').value.trim();
+  const key = vehicleKey || (vehicleLabel ? `unlisted:${vehicleLabel.toLowerCase()}` : `unlisted:untitled-${Date.now()}`);
+  const modifications = Array.from(categoriesWrap.querySelectorAll('.category')).map(div => ({
+    system: div.dataset.system,
+    commonSelected: Array.from(div.querySelectorAll('.checkItem input:checked')).map(i => i.value),
+    notes: div.querySelector('.categoryNotes').value.trim(),
+  })).filter(m => m.commonSelected.length || m.notes);
+
+  const profile = {
+    vehicleId: key,
+    vehicleLabel,
+    trim: document.getElementById('pfTrim').value.trim(),
+    engine: document.getElementById('pfEngine').value.trim(),
+    modifications,
+    generalNotes: document.getElementById('pfGeneralNotes').value.trim(),
+    pastedImportText: document.getElementById('pfImportText').value.trim(),
+    updatedAt: new Date().toISOString(),
+  };
+  await submitVehicleProfile(key, profile);
+  const successEl = document.getElementById('saveSuccess');
+  successEl.style.display = 'block';
+  setTimeout(() => { successEl.style.display = 'none'; }, 4000);
+});
+</script>
+</body>
+</html>

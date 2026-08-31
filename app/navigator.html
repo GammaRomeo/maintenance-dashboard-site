@@ -88,6 +88,9 @@
   <div id="vehicle3dLink" style="margin-bottom:12px; display:none;">
     <a class="link3d" id="link3dAnchor" href="#">Open the full 3D explorer for this vehicle →</a>
   </div>
+  <div style="margin-bottom:16px;">
+    <a class="link3d" id="profileLinkAnchor" href="vehicle-profile.html">Tell us about your vehicle & mods →</a>
+  </div>
 
   <div id="dataView" style="display:none;">
     <div class="searchRow">
@@ -222,11 +225,13 @@ async function selectVehicle(id) {
     currentVehicle = null;
     currentFasteners = [];
     vehicle3dLink.style.display = 'none';
+    document.getElementById('profileLinkAnchor').href = 'vehicle-profile.html';
     showEmpty();
     return;
   }
   const entry = window.__registry.find(v => v.id === id);
   currentVehicle = entry;
+  document.getElementById('profileLinkAnchor').href = `vehicle-profile.html?vehicle=${encodeURIComponent(entry.id)}`;
   const dataset = await fetch(`../data/vehicles/${entry.dataFile}`).then(r => r.json());
   const selfReported = (loadSelfReported()[entry.id] || []).map(r => ({ ...r, sourceTier: 'self-reported' }));
   currentFasteners = dataset.fasteners.concat(selfReported);
