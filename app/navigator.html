@@ -11,9 +11,24 @@
 <style>
   html, body { margin:0; min-height:100%; background:#15161a; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#f5f5f0; }
   #app { max-width:640px; margin:0 auto; padding:16px 16px 60px; }
-  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px; }
   header h1 { font-size:17px; margin:0; font-weight:600; }
   .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+
+  /* Top-of-page split: preview left, condensed picker/links right. Equal columns
+     regardless of viewport for now — a mobile-specific breakpoint can collapse
+     this to a single column later without touching anything below the search bar. */
+  .topSplit { display:flex; gap:14px; margin-bottom:16px; }
+  .previewPane, .controlsPane { flex:1 1 0; min-width:0; }
+  .previewPane { background:#1a1b1f; border:1px solid #22242a; border-radius:12px; display:flex; align-items:center; justify-content:center; padding:8px; cursor:pointer; }
+  .previewPane svg { width:100%; height:auto; max-height:220px; }
+  .previewPane .bodyShape { fill:#22242a; stroke:#3a3c40; stroke-width:2; }
+  .previewPane .glassShape { fill:#15161a; stroke:#2a3038; stroke-width:1; }
+  .previewPane .wheelShape { fill:#0e0f11; stroke:#2a2c30; stroke-width:1; }
+  .controlsPane header { margin-bottom:10px; }
+  .controlsPane h1 { font-size:14.5px; line-height:1.3; }
+  .controlsPane .field { margin-bottom:8px; }
+  .controlsPane a.link3d { display:block; margin-bottom:7px; font-size:12px; }
 
   select, input[type=text] { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
   .field { margin-bottom:12px; }
@@ -71,30 +86,37 @@
     <h2>Before you start</h2>
     <p>Torque values and specs shown here are reference information only, compiled from a mix of official service literature, community/tuner sources, and — where marked — <strong>self-reported by other users and not independently verified</strong>. Each entry is labeled with its source tier.</p>
     <p>Always verify safety-critical specs — wheels, suspension, brakes, steering — against OEM documentation before doing any work. This app is not affiliated with, endorsed by, or sponsored by any vehicle manufacturer.</p>
-    <p>Use of this app and its data is at your own risk; see full terms for details.</p>
+    <p>Use of this app and its data is at your own risk.</p>
     <button class="accept" id="acceptDisclaimer">I understand, continue</button>
   </div>
 </div>
 
 <div id="app">
-  <header>
-    <h1>Maintenance Dashboard — spec navigator</h1>
-    <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
-  </header>
+  <div class="topSplit">
+    <div class="previewPane" id="previewPane" title="Open diagram view">
+      <svg id="previewSvg" viewBox="0 0 300 560" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="controlsPane">
+      <header>
+        <h1>Maintenance Dashboard — spec navigator</h1>
+        <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
+      </header>
 
-  <div class="field">
-    <label for="vehicleSelect">Vehicle</label>
-    <select id="vehicleSelect"></select>
-  </div>
+      <div class="field">
+        <label for="vehicleSelect">Vehicle</label>
+        <select id="vehicleSelect"></select>
+      </div>
 
-  <div id="vehicleDiagramLink" style="margin-bottom:12px; display:none;">
-    <a class="link3d" id="diagramLinkAnchor" href="#">Open the diagram view for this vehicle →</a>
-  </div>
-  <div id="vehicle3dLink" style="margin-bottom:12px; display:none;">
-    <a class="link3d" id="link3dAnchor" href="#">Open the full 3D explorer for this vehicle →</a>
-  </div>
-  <div style="margin-bottom:16px;">
-    <a class="link3d" id="profileLinkAnchor" href="vehicle-profile.html">Tell us about your vehicle & mods →</a>
+      <div id="vehicleDiagramLink" style="margin-bottom:2px; display:none;">
+        <a class="link3d" id="diagramLinkAnchor" href="#">Diagram view →</a>
+      </div>
+      <div id="vehicle3dLink" style="margin-bottom:2px; display:none;">
+        <a class="link3d" id="link3dAnchor" href="#">Full 3D explorer →</a>
+      </div>
+      <div>
+        <a class="link3d" id="profileLinkAnchor" href="vehicle-profile.html">Your vehicle & mods →</a>
+      </div>
+    </div>
   </div>
 
   <div id="dataView" style="display:none;">
@@ -152,6 +174,7 @@
 </div>
 
 <script src="../data/fastener-data.js"></script>
+<script src="../data/silhouettes.js"></script>
 <script>
 const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
 const SELF_REPORT_KEY = 'maintenance-dashboard-selfreported-v1';
@@ -205,6 +228,25 @@ const vehicleSelect = document.getElementById('vehicleSelect');
 const dataView = document.getElementById('dataView');
 const emptyState = document.getElementById('emptyState');
 const vehicle3dLink = document.getElementById('vehicle3dLink');
+const previewPane = document.getElementById('previewPane');
+
+// Lightweight, non-interactive teaser of the selected vehicle's diagram-view
+// silhouette (same generic per-class shape data/silhouettes.js draws on the full
+// diagram page) — no zone numbers/legend here, just the outline, tapping it opens
+// the real diagram view.
+function renderPreview(vehicleClass) {
+  const cls = getSilhouetteClass(vehicleClass || 'sedan');
+  const svg = document.getElementById('previewSvg');
+  svg.innerHTML = `
+    <path class="bodyShape" d="${cls.bodyPath}"></path>
+    <path class="glassShape" d="${cls.windshieldPath}"></path>
+    <path class="glassShape" d="${cls.rearWindowPath}"></path>
+    ${cls.wheels.map(w => `<rect class="wheelShape" x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="${w.rx}"></rect>`).join('')}
+  `;
+}
+previewPane.addEventListener('click', () => {
+  if (currentVehicle) window.location.href = `silhouette-explorer.html?vehicle=${encodeURIComponent(currentVehicle.id)}`;
+});
 
 async function init() {
   const registry = await fetch('../data/vehicles/registry.json').then(r => r.json());
@@ -232,11 +274,13 @@ async function selectVehicle(id) {
     vehicle3dLink.style.display = 'none';
     document.getElementById('vehicleDiagramLink').style.display = 'none';
     document.getElementById('profileLinkAnchor').href = 'vehicle-profile.html';
+    renderPreview('sedan');
     showEmpty();
     return;
   }
   const entry = window.__registry.find(v => v.id === id);
   currentVehicle = entry;
+  renderPreview(entry.vehicleClass);
   document.getElementById('profileLinkAnchor').href = `vehicle-profile.html?vehicle=${encodeURIComponent(entry.id)}`;
   const dataset = await fetch(`../data/vehicles/${entry.dataFile}`).then(r => r.json());
   const selfReported = (loadSelfReported()[entry.id] || []).map(r => ({ ...r, sourceTier: 'self-reported' }));
