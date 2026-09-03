@@ -1,7 +1,7 @@
 // Minimal offline cache for the PWA shell so Wave 1 testers can reopen the app
 // without a connection after the first successful load. Bump CACHE_NAME on any
 // asset change to invalidate old caches.
-const CACHE_NAME = 'maintenance-dashboard-shell-v4';
+const CACHE_NAME = 'maintenance-dashboard-shell-v5';
 const SHELL_ASSETS = [
   'navigator.html',
   'vehicle-profile.html',
