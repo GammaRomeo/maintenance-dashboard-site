@@ -7,6 +7,16 @@
     "yearRange": "2013-2020",
     "dataFile": "audi-a3-8v.json",
     "has3D": true,
-    "vehicleClass": "sedan"
+    "vehicleClass": "sedan",
+    "topDownImage": "img/audi-a3-8v-topdown.png",
+    "topDownZones": {
+      "engine":     { "cx": 150, "cy": 94 },
+      "frontLeft":  { "cx": 234, "cy": 133 },
+      "frontRight": { "cx": 66,  "cy": 133 },
+      "rearLeft":   { "cx": 234, "cy": 427 },
+      "rearRight":  { "cx": 66,  "cy": 427 },
+      "exhaust":    { "cx": 178, "cy": 494 },
+      "interior":   { "cx": 195, "cy": 246 }
+    }
   }
 ]

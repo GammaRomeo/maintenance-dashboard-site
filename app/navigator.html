@@ -231,12 +231,17 @@ const vehicle3dLink = document.getElementById('vehicle3dLink');
 const previewPane = document.getElementById('previewPane');
 
 // Lightweight, non-interactive teaser of the selected vehicle's diagram-view
-// silhouette (same generic per-class shape data/silhouettes.js draws on the full
-// diagram page) — no zone numbers/legend here, just the outline, tapping it opens
-// the real diagram view.
-function renderPreview(vehicleClass) {
-  const cls = getSilhouetteClass(vehicleClass || 'sedan');
+// silhouette — a real top-down capture of the vehicle's own purchased/scanned 3D
+// model when the registry provides one (topDownImage), otherwise the generic
+// per-class shape data/silhouettes.js draws on the full diagram page. No zone
+// numbers/legend here, just the outline; tapping it opens the real diagram view.
+function renderPreview(vehicleClass, entry) {
   const svg = document.getElementById('previewSvg');
+  if (entry && entry.topDownImage) {
+    svg.innerHTML = `<image href="${entry.topDownImage}" x="0" y="0" width="300" height="560" preserveAspectRatio="xMidYMid meet"></image>`;
+    return;
+  }
+  const cls = getSilhouetteClass(vehicleClass || 'sedan');
   svg.innerHTML = `
     <path class="bodyShape" d="${cls.bodyPath}"></path>
     <path class="glassShape" d="${cls.windshieldPath}"></path>
@@ -280,7 +285,7 @@ async function selectVehicle(id) {
   }
   const entry = window.__registry.find(v => v.id === id);
   currentVehicle = entry;
-  renderPreview(entry.vehicleClass);
+  renderPreview(entry.vehicleClass, entry);
   document.getElementById('profileLinkAnchor').href = `vehicle-profile.html?vehicle=${encodeURIComponent(entry.id)}`;
   const dataset = await fetch(`../data/vehicles/${entry.dataFile}`).then(r => r.json());
   const selfReported = (loadSelfReported()[entry.id] || []).map(r => ({ ...r, sourceTier: 'self-reported' }));

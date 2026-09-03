@@ -143,16 +143,28 @@ let currentZone = null;
 let vehicleEntry = null;
 let fastenersByZone = {};
 
-function drawSilhouette(vehicleClass) {
-  const cls = getSilhouetteClass(vehicleClass);
+function drawSilhouette(vehicleClass, entry) {
   const svg = document.getElementById('car');
-  svg.innerHTML = `
-    <path class="bodyShape" d="${cls.bodyPath}"></path>
-    <path class="glassShape" d="${cls.windshieldPath}"></path>
-    <path class="glassShape" d="${cls.rearWindowPath}"></path>
-    ${cls.wheels.map(w => `<rect class="wheelShape" x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="${w.rx}"></rect>`).join('')}
-  `;
-  Object.entries(cls.zones).forEach(([zoneId, pos]) => {
+  // A vehicle can ship a real top-down capture of its own purchased/scanned 3D
+  // model (registry.json topDownImage + topDownZones, rendered once offline from
+  // the actual mesh) — used when present, since it looks more like the real car
+  // than the generic per-class vector shape. Every vehicle without one still gets
+  // the generic shape, which is the whole point of that fallback (see
+  // technical-architecture-schema.md): it needs no purchased 3D model at all.
+  const useRealImage = entry && entry.topDownImage;
+  const zones = useRealImage ? entry.topDownZones : getSilhouetteClass(vehicleClass).zones;
+  if (useRealImage) {
+    svg.innerHTML = `<image href="${entry.topDownImage}" x="0" y="0" width="300" height="560" preserveAspectRatio="xMidYMid meet"></image>`;
+  } else {
+    const cls = getSilhouetteClass(vehicleClass);
+    svg.innerHTML = `
+      <path class="bodyShape" d="${cls.bodyPath}"></path>
+      <path class="glassShape" d="${cls.windshieldPath}"></path>
+      <path class="glassShape" d="${cls.rearWindowPath}"></path>
+      ${cls.wheels.map(w => `<rect class="wheelShape" x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="${w.rx}"></rect>`).join('')}
+    `;
+  }
+  Object.entries(zones).forEach(([zoneId, pos]) => {
     const color = COLORS[zoneId] || '#2dd4bf';
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'zoneMarker');
@@ -234,7 +246,7 @@ async function init() {
   document.getElementById('vehicleTitle').textContent = `${vehicleEntry.make} ${vehicleEntry.model}`;
   const dataset = await fetch(`../data/vehicles/${vehicleEntry.dataFile}`).then(r => r.json());
   fastenersByZone = groupFastenersByZone(dataset.fasteners);
-  drawSilhouette(vehicleEntry.vehicleClass);
+  drawSilhouette(vehicleEntry.vehicleClass, vehicleEntry);
   renderLegend();
 }
 init();
