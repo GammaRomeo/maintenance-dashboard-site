@@ -1,0 +1,125 @@
+// Wave 1.5 controlled beta client: access gate + usage beacon + submission client.
+// Included by navigator.html, vehicle-profile.html and silhouette-explorer.html,
+// after beta-config.js. Fails OPEN (no gate, no network calls) whenever
+// BETA_API_BASE is blank — see beta-config.js.
+const BETA_TOKEN_KEY = 'maintenance-dashboard-beta-token-v1';
+const BETA_APP_VERSION = '1.5.0-beta';
+const BETA_USAGE_THROTTLE_KEY = 'maintenance-dashboard-beta-usage-v1';
+const BETA_USAGE_THROTTLE_MS = 60 * 60 * 1000; // one usage beacon per token per hour
+
+function betaReadToken() {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get('beta');
+  if (fromUrl) {
+    try { localStorage.setItem(BETA_TOKEN_KEY, fromUrl); } catch (e) {}
+    return fromUrl;
+  }
+  try { return localStorage.getItem(BETA_TOKEN_KEY) || ''; } catch (e) { return ''; }
+}
+
+const BetaGate = {
+  token: betaReadToken(),
+
+  async check() {
+    if (!BETA_API_BASE) return { enabled: true };
+    if (!this.token) {
+      return { enabled: false, message: 'This build requires a beta access link. Contact the developer for one.' };
+    }
+    try {
+      const res = await fetch(`${BETA_API_BASE}/api/beta/config?token=${encodeURIComponent(this.token)}`);
+      return await res.json();
+    } catch (e) {
+      return { enabled: false, message: 'Could not verify beta access (no connection). Try again once online.' };
+    }
+  },
+
+  // Client-side half of the one-event-per-hour throttle: keyed by token (not by
+  // route/page), so navigating between navigator/profile/silhouette within the same
+  // hour still only sends one beacon. This is a courtesy to stay well inside
+  // Cloudflare KV's free-tier write quota — the worker also coalesces defensively
+  // server-side (see beta-worker/src/worker.js) in case this is bypassed.
+  _dueForUsageBeacon() {
+    try {
+      const all = JSON.parse(localStorage.getItem(BETA_USAGE_THROTTLE_KEY) || '{}');
+      const last = all[this.token];
+      return !last || (Date.now() - last) >= BETA_USAGE_THROTTLE_MS;
+    } catch (e) { return true; }
+  },
+  _markUsageBeaconSent() {
+    try {
+      const all = JSON.parse(localStorage.getItem(BETA_USAGE_THROTTLE_KEY) || '{}');
+      all[this.token] = Date.now();
+      localStorage.setItem(BETA_USAGE_THROTTLE_KEY, JSON.stringify(all));
+    } catch (e) {}
+  },
+
+  sendEvent(route) {
+    if (!BETA_API_BASE || !this.token) return;
+    if (!this._dueForUsageBeacon()) return;
+    this._markUsageBeaconSent();
+    const payload = JSON.stringify({
+      token: this.token,
+      appVersion: BETA_APP_VERSION,
+      route,
+      ua: navigator.userAgent,
+    });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(`${BETA_API_BASE}/api/beta/event`, new Blob([payload], { type: 'application/json' }));
+    } else {
+      fetch(`${BETA_API_BASE}/api/beta/event`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true,
+      }).catch(() => {});
+    }
+  },
+
+  // Best-effort submit to the beta worker; always resolves (never throws) so callers
+  // can keep their existing local-write-first behavior unconditionally.
+  async submit(path, data) {
+    if (!BETA_API_BASE) return { ok: false, offline: true };
+    try {
+      const res = await fetch(`${BETA_API_BASE}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: this.token, ...data }),
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  },
+
+  // Cross-device profile fetch: same beta link/token used on a second device reads
+  // back what was saved from the first. Best-effort, never throws.
+  async fetchProfile(vehicleKey) {
+    if (!BETA_API_BASE || !this.token) return { ok: false, found: false };
+    try {
+      const res = await fetch(
+        `${BETA_API_BASE}/api/beta/profile?token=${encodeURIComponent(this.token)}&vehicleKey=${encodeURIComponent(vehicleKey)}`
+      );
+      return await res.json();
+    } catch (e) {
+      return { ok: false, found: false, error: String(e) };
+    }
+  },
+};
+
+// Shows/hides the page's #betaGate overlay (markup lives in each host page) around
+// a BetaGate.check() call, and fires one usage event per page load on success.
+// Returns true if the page should proceed to its normal init/render, false if the
+// gate is blocking (overlay stays up with the returned message).
+async function betaEnforceGate() {
+  if (!BETA_API_BASE) return true;
+  const gateEl = document.getElementById('betaGate');
+  if (gateEl) gateEl.style.display = 'flex';
+  const result = await BetaGate.check();
+  if (result.enabled) {
+    if (gateEl) gateEl.style.display = 'none';
+    BetaGate.sendEvent(window.location.pathname.split('/').pop() || 'navigator.html');
+    return true;
+  }
+  if (gateEl) {
+    const msgEl = gateEl.querySelector('.betaMessage');
+    if (msgEl) msgEl.textContent = result.message || 'Beta access is not available right now.';
+  }
+  return false;
+}

@@ -59,14 +59,26 @@
   #consentGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 12px; }
   #consentGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0 0 10px; }
   #consentGate .accept { width:100%; margin-top:8px; background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:12px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  #betaGate { position:fixed; inset:0; background:rgba(10,11,13,0.98); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+  #betaGate .box { max-width:420px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px; }
+  #betaGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 10px; }
+  #betaGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0; }
 </style>
 </head>
 <body>
+<div id="betaGate">
+  <div class="box">
+    <h2>Beta access required</h2>
+    <p class="betaMessage">Checking access…</p>
+  </div>
+</div>
 <div id="consentGate">
   <div class="box">
     <h2>Before you start</h2>
     <p>Torque values and specs shown here are reference information only — official, community/tuner, and self-reported sources are each labeled. Not a substitute for your vehicle's official service manual.</p>
     <p>Always verify safety-critical specs — wheels, suspension, brakes, steering — against OEM documentation before doing any work. This app is not affiliated with, endorsed by, or sponsored by any vehicle manufacturer.</p>
+    <p><strong>This is a private beta test build</strong> — for the invited tester's own evaluation use only, not for redistribution. Basic usage is logged so the developer can see it's being used; no location or other personal data is collected.</p>
     <button class="accept" id="acceptDisclaimer">I understand, continue</button>
   </div>
 </div>
@@ -103,6 +115,8 @@
 
 <script src="../data/fastener-data.js"></script>
 <script src="../data/silhouettes.js"></script>
+<script src="beta-config.js"></script>
+<script src="beta.js"></script>
 <script>
 const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
 const MODLOG_KEY = 'maintenance-dashboard-modlog-v1';
@@ -249,7 +263,7 @@ async function init() {
   drawSilhouette(vehicleEntry.vehicleClass, vehicleEntry);
   renderLegend();
 }
-init();
+betaEnforceGate().then((ok) => { if (ok) init(); });
 </script>
 </body>
 </html>

@@ -42,15 +42,27 @@
   #consentGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0 0 10px; }
   #consentGate .accept { width:100%; margin-top:8px; background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:12px; font-size:14px; font-weight:600; cursor:pointer; }
 
+  #betaGate { position:fixed; inset:0; background:rgba(10,11,13,0.98); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+  #betaGate .box { max-width:420px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px; }
+  #betaGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 10px; }
+  #betaGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0; }
+
   .sectionlabel { color:#6b6e74; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px; }
 </style>
 </head>
 <body>
+<div id="betaGate">
+  <div class="box">
+    <h2>Beta access required</h2>
+    <p class="betaMessage">Checking access…</p>
+  </div>
+</div>
 <div id="consentGate">
   <div class="box">
     <h2>Before you start</h2>
     <p>Torque values and specs elsewhere in this app are reference information only, compiled from a mix of official service literature, community/tuner sources, and — where marked — self-reported by other users and not independently verified.</p>
     <p>Always verify safety-critical specs — wheels, suspension, brakes, steering — against OEM documentation before doing any work. This app is not affiliated with, endorsed by, or sponsored by any vehicle manufacturer.</p>
+    <p><strong>This is a private beta test build</strong> — for the invited tester's own evaluation use only, not for redistribution. Submissions here (vehicle/mod info) are sent to the developer to improve the spec database; basic usage is also logged. No location or other personal data is collected.</p>
     <p>Use of this app and its data is at your own risk.</p>
     <button class="accept" id="acceptDisclaimer">I understand, continue</button>
   </div>
@@ -100,15 +112,11 @@
 </div>
 
 <script src="../data/mod-taxonomy.js"></script>
+<script src="beta-config.js"></script>
+<script src="beta.js"></script>
 <script>
 const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
 const PROFILE_KEY = 'maintenance-dashboard-vehicle-profiles-v1';
-
-// Local-first, same pattern as the self-report fastener form in navigator.html.
-// Submissions stay on this device until PROFILE_SUBMIT_ENDPOINT points at a real
-// collection endpoint — that's what "improve the survey from user data over time"
-// needs, and it doesn't exist yet. No user-side export step either way once it does.
-const PROFILE_SUBMIT_ENDPOINT = null;
 
 const consentGate = document.getElementById('consentGate');
 function showGate(){ consentGate.style.display = 'flex'; }
@@ -130,15 +138,12 @@ async function submitVehicleProfile(vehicleKey, profile) {
   const all = loadProfiles();
   all[vehicleKey] = profile;
   saveProfiles(all);
-  if (PROFILE_SUBMIT_ENDPOINT) {
-    try {
-      await fetch(PROFILE_SUBMIT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile),
-      });
-    } catch (e) { console.warn('Profile endpoint unreachable, kept locally:', e); }
-  }
+  // Wave 1.5: also send to the beta-worker collection endpoint (see beta.js /
+  // beta-worker/README.md). Local write above always happens first and
+  // unconditionally, so a submission is never lost even if the endpoint is
+  // unreachable or not yet deployed (BetaGate.submit no-ops in that case).
+  const result = await BetaGate.submit('/api/beta/profile', { vehicleKey, profile });
+  if (!result.ok && !result.offline) console.warn('Profile endpoint unreachable, kept locally:', result);
 }
 
 function vehicleKeyFromParams() {
@@ -172,15 +177,21 @@ MOD_TAXONOMY.forEach(cat => {
   categoriesWrap.appendChild(div);
 });
 
-const vehicleKey = vehicleKeyFromParams();
-const existing = vehicleKey ? loadProfiles()[vehicleKey] : null;
-if (existing) {
-  document.getElementById('pfVehicle').value = existing.vehicleLabel || '';
-  document.getElementById('pfTrim').value = existing.trim || '';
-  document.getElementById('pfEngine').value = existing.engine || '';
-  document.getElementById('pfGeneralNotes').value = existing.generalNotes || '';
-  document.getElementById('pfImportText').value = existing.pastedImportText || '';
-  (existing.modifications || []).forEach(modCat => {
+// Resets every field to a given saved profile (or clears the checkboxes/notes when
+// applying a fresh vehicleLabel-only prefill). Shared by the initial local-first
+// load and the cross-device remote-profile merge below, so both paths render
+// identically.
+function applyProfileToForm(profile) {
+  document.getElementById('pfVehicle').value = profile.vehicleLabel || '';
+  document.getElementById('pfTrim').value = profile.trim || '';
+  document.getElementById('pfEngine').value = profile.engine || '';
+  document.getElementById('pfGeneralNotes').value = profile.generalNotes || '';
+  document.getElementById('pfImportText').value = profile.pastedImportText || '';
+  categoriesWrap.querySelectorAll('.category').forEach(div => {
+    div.querySelectorAll('.checkItem').forEach(chip => { chip.classList.remove('checked'); chip.querySelector('input').checked = false; });
+    div.querySelector('.categoryNotes').value = '';
+  });
+  (profile.modifications || []).forEach(modCat => {
     const div = categoriesWrap.querySelector(`.category[data-system="${modCat.system}"]`);
     if (!div) return;
     (modCat.commonSelected || []).forEach(item => {
@@ -189,12 +200,39 @@ if (existing) {
     });
     div.querySelector('.categoryNotes').value = modCat.notes || '';
   });
+}
+
+const vehicleKey = vehicleKeyFromParams();
+const existing = vehicleKey ? loadProfiles()[vehicleKey] : null;
+if (existing) {
+  applyProfileToForm(existing);
 } else if (vehicleKey) {
   document.getElementById('pfVehicle').value = vehicleKey;
   fetch('../data/vehicles/registry.json').then(r => r.json()).then(registry => {
     const entry = registry.find(v => v.id === vehicleKey);
     if (entry) document.getElementById('pfVehicle').value = `${entry.make} ${entry.model} (${entry.yearRange})`;
   }).catch(() => {});
+}
+
+// Cross-device viewing: after the beta gate passes, check the worker for a saved
+// profile under this same beta token (see beta.js fetchProfile / beta-worker's
+// GET /api/beta/profile). If it's newer than what's cached locally on this device
+// (last-write-wins by `updatedAt`), it means this vehicle's profile was last saved
+// from a different device (e.g. entered on a phone, now viewing on a laptop) —
+// apply it to the form and refresh the local cache so it's available offline too.
+// No-ops entirely when BETA_API_BASE isn't configured yet (BetaGate.fetchProfile
+// short-circuits), so this never touches local-only usage.
+async function syncProfileFromServer() {
+  if (!vehicleKey) return;
+  const result = await BetaGate.fetchProfile(vehicleKey);
+  if (!result || !result.found || !result.profile) return;
+  const localUpdatedAt = existing && existing.updatedAt;
+  const remoteUpdatedAt = result.profile.updatedAt;
+  if (localUpdatedAt && remoteUpdatedAt && localUpdatedAt >= remoteUpdatedAt) return;
+  applyProfileToForm(result.profile);
+  const all = loadProfiles();
+  all[vehicleKey] = result.profile;
+  saveProfiles(all);
 }
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -221,6 +259,8 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   successEl.style.display = 'block';
   setTimeout(() => { successEl.style.display = 'none'; }, 4000);
 });
+
+betaEnforceGate().then((ok) => { if (ok) syncProfileFromServer(); });
 </script>
 </body>
 </html>
