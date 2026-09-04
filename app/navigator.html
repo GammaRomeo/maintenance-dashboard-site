@@ -64,6 +64,11 @@
   #selfReportForm { display:none; background:#1a1b1f; border:1px solid #2f3238; border-radius:12px; padding:16px; margin-top:14px; }
   #selfReportForm.open { display:block; }
   #selfReportForm h3 { font-size:14px; margin:0 0 4px; }
+
+  #betaContactBox { display:none; background:#1a1b1f; border:1px solid #2f3238; border-radius:12px; padding:16px; margin-top:14px; }
+  #betaContactBox h3 { font-size:14px; margin:0 0 4px; }
+  #betaContactSummary { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; color:#c8cad0; }
+  #bcError { color:#e24b4a; font-size:12px; margin-top:6px; }
   .warnBox { background:#2a2010; border:1px solid #4a3a1a; border-radius:8px; padding:10px 12px; font-size:12px; color:#e0c08a; line-height:1.4; margin:10px 0; }
   .checkboxRow { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:#a7abb2; margin:10px 0; }
   .checkboxRow input { width:auto; margin-top:2px; }
@@ -145,6 +150,45 @@
     <button class="ctaBtn" id="showSelfReportBtn">Add what you know</button>
   </div>
 
+  <div id="betaContactBox">
+    <h3>Beta tester info</h3>
+    <p id="betaContactIntro" class="warnBox" style="display:none;">We need your first name, last initial, and email so we can follow up on your beta feedback. This is required once before submitting self-reported data below — it does not affect browsing the dashboard.</p>
+    <div id="betaContactSummary" style="display:none;">
+      <span id="betaContactSummaryText"></span>
+      <button class="secondaryBtn" id="betaContactEditBtn" type="button">Edit</button>
+    </div>
+    <div id="betaContactForm" style="display:none;">
+      <div class="field">
+        <label>First name *</label>
+        <input type="text" id="bcFirstName">
+      </div>
+      <div class="field">
+        <label>Last initial *</label>
+        <input type="text" id="bcLastInitial" maxlength="1">
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="bcEmail">
+      </div>
+      <div class="field">
+        <label>Device type (optional)</label>
+        <select id="bcDeviceType">
+          <option value="">Not specified</option>
+          <option value="mobile">Mobile</option>
+          <option value="desktop">Desktop</option>
+          <option value="web">Web</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="text" id="bcPhone">
+      </div>
+      <div id="bcError" style="display:none;"></div>
+      <button class="ctaBtn" id="bcSaveBtn" type="button">Save</button>
+      <button class="secondaryBtn" id="bcCancelBtn" type="button" style="display:none;">Cancel</button>
+    </div>
+  </div>
+
   <div id="selfReportForm">
     <h3>Add a fastener spec</h3>
     <div class="warnBox">
@@ -178,7 +222,7 @@
       <input type="checkbox" id="srConfirm">
       <label for="srConfirm">I confirm this is accurate to the best of my knowledge, and I understand it will be shown to other users as unverified, self-reported data.</label>
     </div>
-    <div id="srError">Please fill in the fastener name, torque value, and confirm the checkbox above.</div>
+    <div id="srError"></div>
     <div id="srSuccess">Saved. Thanks for contributing.</div>
     <button class="ctaBtn" id="srSubmitBtn">Save</button>
     <button class="secondaryBtn" id="srCancelBtn">Cancel</button>
@@ -397,7 +441,16 @@ document.getElementById('srSubmitBtn').addEventListener('click', async () => {
   const confirmed = document.getElementById('srConfirm').checked;
   const errEl = document.getElementById('srError');
   const okEl = document.getElementById('srSuccess');
+  if (BETA_API_BASE && !betaContactSaved) {
+    errEl.textContent = 'Please save your beta tester info (name, last initial, email) above before submitting data.';
+    errEl.style.display = 'block';
+    okEl.style.display = 'none';
+    showContactForm(false);
+    document.getElementById('betaContactBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
   if (!fastenerName || !torqueValue || !confirmed) {
+    errEl.textContent = 'Please fill in the fastener name, torque value, and confirm the checkbox above.';
     errEl.style.display = 'block';
     okEl.style.display = 'none';
     return;
@@ -432,7 +485,88 @@ document.getElementById('srSubmitBtn').addEventListener('click', async () => {
   }
 });
 
-betaEnforceGate().then((ok) => { if (ok) init(); });
+// Beta tester contact registry: first name / last initial / email are mandatory
+// once (so Gregg can reach testers about feedback); device type and phone are
+// optional. Reading the dashboard is never blocked on this — only submitting
+// self-reported fastener data is (see srSubmitBtn handler above).
+let betaContactSaved = false;
+let betaContactRecord = null;
+const betaContactBox = document.getElementById('betaContactBox');
+
+function renderContactSummary() {
+  const el = document.getElementById('betaContactSummaryText');
+  if (betaContactRecord) {
+    el.textContent = `${betaContactRecord.firstName} ${betaContactRecord.lastInitial}. — ${betaContactRecord.email}`;
+  }
+}
+
+function showContactForm(prefill) {
+  betaContactBox.style.display = 'block';
+  document.getElementById('betaContactForm').style.display = 'block';
+  document.getElementById('betaContactSummary').style.display = 'none';
+  document.getElementById('bcCancelBtn').style.display = betaContactRecord ? 'inline-block' : 'none';
+  document.getElementById('bcError').style.display = 'none';
+  if (prefill && betaContactRecord) {
+    document.getElementById('bcFirstName').value = betaContactRecord.firstName || '';
+    document.getElementById('bcLastInitial').value = betaContactRecord.lastInitial || '';
+    document.getElementById('bcEmail').value = betaContactRecord.email || '';
+    document.getElementById('bcDeviceType').value = betaContactRecord.deviceType || '';
+    document.getElementById('bcPhone').value = betaContactRecord.phone || '';
+  } else if (!prefill) {
+    ['bcFirstName','bcLastInitial','bcEmail','bcPhone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('bcDeviceType').value = '';
+  }
+}
+
+function showContactSummary() {
+  betaContactBox.style.display = 'block';
+  document.getElementById('betaContactForm').style.display = 'none';
+  document.getElementById('betaContactSummary').style.display = 'flex';
+  document.getElementById('betaContactIntro').style.display = 'none';
+  renderContactSummary();
+}
+
+async function initBetaContact() {
+  if (!BETA_API_BASE) return; // fails open — no gate, no contact capture
+  const result = await BetaGate.fetchContact();
+  if (result.found && result.contact) {
+    betaContactRecord = result.contact;
+    betaContactSaved = true;
+    showContactSummary();
+  } else {
+    betaContactSaved = false;
+    document.getElementById('betaContactIntro').style.display = 'block';
+    showContactForm(false);
+  }
+}
+
+document.getElementById('betaContactEditBtn').addEventListener('click', () => showContactForm(true));
+document.getElementById('bcCancelBtn').addEventListener('click', () => showContactSummary());
+
+document.getElementById('bcSaveBtn').addEventListener('click', async () => {
+  const firstName = document.getElementById('bcFirstName').value.trim();
+  const lastInitial = document.getElementById('bcLastInitial').value.trim();
+  const email = document.getElementById('bcEmail').value.trim();
+  const deviceType = document.getElementById('bcDeviceType').value;
+  const phone = document.getElementById('bcPhone').value.trim();
+  const errEl = document.getElementById('bcError');
+  if (!firstName || !/^[A-Za-z]$/.test(lastInitial) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter your first name, a single-letter last initial, and a valid email.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const result = await BetaGate.submitContact({ firstName, lastInitial, email, deviceType, phone });
+  if (result.ok) {
+    betaContactRecord = result.contact;
+    betaContactSaved = true;
+    showContactSummary();
+  } else {
+    errEl.textContent = result.error || 'Could not save your info. Please try again.';
+    errEl.style.display = 'block';
+  }
+});
+
+betaEnforceGate().then((ok) => { if (ok) { init(); initBetaContact(); } });
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

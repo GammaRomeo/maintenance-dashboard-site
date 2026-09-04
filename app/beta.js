@@ -101,6 +101,33 @@ const BetaGate = {
       return { ok: false, found: false, error: String(e) };
     }
   },
+
+  // Tester contact registry (name/email/optional device+phone), keyed server-side
+  // by the same identity as profile/selfreport. Best-effort, never throws — a
+  // failed fetch/save should not block the rest of the app.
+  async fetchContact() {
+    if (!BETA_API_BASE || !this.token) return { ok: false, found: false, required: false };
+    try {
+      const res = await fetch(`${BETA_API_BASE}/api/beta/contact?token=${encodeURIComponent(this.token)}`);
+      return await res.json();
+    } catch (e) {
+      return { ok: false, found: false, required: false, error: String(e) };
+    }
+  },
+
+  async submitContact(contact) {
+    if (!BETA_API_BASE || !this.token) return { ok: false, offline: true };
+    try {
+      const res = await fetch(`${BETA_API_BASE}/api/beta/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: this.token, contact }),
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  },
 };
 
 // Shows/hides the page's #betaGate overlay (markup lives in each host page) around
