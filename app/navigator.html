@@ -80,7 +80,7 @@
   #srError { color:#e24b4a; font-size:12px; display:none; margin-top:6px; }
   #srSuccess { color:#3fdca0; font-size:12px; display:none; margin-top:6px; }
 
-  #consentGate { position:fixed; inset:0; background:rgba(10,11,13,0.96); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
+  #consentGate { position:fixed; inset:0; background:rgba(10,11,13,0.96); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
   #consentGate .box { max-width:440px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px 22px 20px; }
   #consentGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 12px; }
   #consentGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0 0 10px; }
@@ -242,7 +242,7 @@ const SELF_REPORT_KEY = 'maintenance-dashboard-selfreported-v1';
 const consentGate = document.getElementById('consentGate');
 function showGate(){ consentGate.style.display = 'flex'; }
 function hideGate(){ consentGate.style.display = 'none'; }
-if (localStorage.getItem(CONSENT_KEY) === 'accepted') { hideGate(); } else { showGate(); }
+hideGate();
 document.getElementById('acceptDisclaimer').addEventListener('click', () => {
   try { localStorage.setItem(CONSENT_KEY, 'accepted'); } catch (e) {}
   hideGate();
@@ -498,6 +498,7 @@ const appEl = document.getElementById('app');
 function showApp() {
   appEl.classList.add('ready');
   appEl.setAttribute('aria-hidden', 'false');
+  if (localStorage.getItem(CONSENT_KEY) !== 'accepted') showGate();
 }
 
 function hideContactGate() {
