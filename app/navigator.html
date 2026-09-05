@@ -235,6 +235,7 @@
 <script src="../data/silhouettes.js"></script>
 <script src="beta-config.js"></script>
 <script src="beta.js"></script>
+<script src="self-report-merge.js"></script>
 <script>
 const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
 const SELF_REPORT_KEY = 'maintenance-dashboard-selfreported-v1';
@@ -338,7 +339,28 @@ async function selectVehicle(id) {
   renderPreview(entry.vehicleClass, entry);
   document.getElementById('profileLinkAnchor').href = `vehicle-profile.html?vehicle=${encodeURIComponent(entry.id)}`;
   const dataset = await fetch(`../data/vehicles/${entry.dataFile}`).then(r => r.json());
-  const selfReported = (loadSelfReported()[entry.id] || []).map(r => ({ ...r, sourceTier: 'self-reported' }));
+  const localSelfReported = loadSelfReported()[entry.id] || [];
+  // Cross-device readback: merge in this identity's self-reports saved from other
+  // devices (see beta-worker/README.md "Cross-device self-reports"). Best-effort —
+  // if the worker is unreachable or BETA_API_BASE is unset, remoteSelfReported
+  // stays empty and only the local copy is shown, same as before this feature.
+  let remoteSelfReported = [];
+  if (BETA_API_BASE) {
+    const remoteResult = await BetaGate.fetchSelfReports(entry.id);
+    if (remoteResult && remoteResult.ok && Array.isArray(remoteResult.reports)) {
+      remoteSelfReported = remoteResult.reports;
+    }
+  }
+  const mergedSelfReported = mergeSelfReports(localSelfReported, remoteSelfReported);
+  if (remoteSelfReported.length) {
+    // Persist the merge so remote-only records survive an offline reload too.
+    // Safe because mergeSelfReports() never drops a local record — see its
+    // local-wins-on-collision rule in self-report-merge.js.
+    const all = loadSelfReported();
+    all[entry.id] = mergedSelfReported;
+    saveSelfReported(all);
+  }
+  const selfReported = mergedSelfReported.map(r => ({ ...r, sourceTier: 'self-reported' }));
   currentFasteners = dataset.fasteners.concat(selfReported);
 
   document.getElementById('vehicleDiagramLink').style.display = 'block';

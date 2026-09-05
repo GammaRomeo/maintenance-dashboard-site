@@ -102,6 +102,23 @@ const BetaGate = {
     }
   },
 
+  // Cross-device self-report fastener readback: same identity's records for a
+  // vehicle, saved from any device, so navigator.html can merge them with this
+  // device's localStorage copy instead of only ever showing local submissions.
+  // Best-effort, never throws — see mergeSelfReports() in self-report-merge.js
+  // for the de-dupe rule applied to the { reports } this returns.
+  async fetchSelfReports(vehicleKey) {
+    if (!BETA_API_BASE || !this.token) return { ok: false, reports: [] };
+    try {
+      const res = await fetch(
+        `${BETA_API_BASE}/api/beta/selfreports?token=${encodeURIComponent(this.token)}&vehicleKey=${encodeURIComponent(vehicleKey)}`
+      );
+      return await res.json();
+    } catch (e) {
+      return { ok: false, reports: [], error: String(e) };
+    }
+  },
+
   // Tester contact registry (name/email/optional device+phone), keyed server-side
   // by the same identity as profile/selfreport. Best-effort, never throws — a
   // failed fetch/save should not block the rest of the app.
