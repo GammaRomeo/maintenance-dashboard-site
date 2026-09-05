@@ -8,7 +8,7 @@
 // a working cached copy until it's next online (network-first can't check a kill
 // switch with no network). That's an accepted tradeoff for this pass, not a bug —
 // see beta-worker/README.md "What this does not protect against".
-const CACHE_NAME = 'maintenance-dashboard-shell-v12';
+const CACHE_NAME = 'maintenance-dashboard-shell-v13';
 const SHELL_ASSETS = [
   'navigator.html',
   'vehicle-profile.html',

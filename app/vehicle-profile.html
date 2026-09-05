@@ -17,7 +17,7 @@
   .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
   p.lede { color:#9a9da3; font-size:13px; line-height:1.5; margin:0 0 18px; }
 
-  input[type=text], textarea { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; font-family:inherit; }
+  input[type=text], input[type=email], select, textarea { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; font-family:inherit; }
   textarea { resize:vertical; min-height:56px; }
   .field { margin-bottom:12px; }
   .field label { display:block; color:#9a9da3; font-size:12px; margin-bottom:5px; }
@@ -47,7 +47,16 @@
   #betaGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 10px; }
   #betaGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0; }
 
+  #betaContactGate { position:fixed; inset:0; background:rgba(10,11,13,0.98); z-index:250; display:none; align-items:center; justify-content:center; padding:20px; }
+  #betaContactGate .box { width:min(440px, 100%); background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px; }
+  #betaContactGate h2 { font-size:16px; margin:0 0 8px; color:#f5f5f0; }
+  #betaContactGate p { color:#c8cad0; font-size:13px; line-height:1.5; margin:0 0 12px; }
+  #bcError { color:#e24b4a; font-size:12px; margin-top:6px; }
+
   .sectionlabel { color:#6b6e74; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 8px; }
+
+  #app { display:none; }
+  #app.ready { display:block; }
 </style>
 </head>
 <body>
@@ -55,6 +64,41 @@
   <div class="box">
     <h2>Beta access required</h2>
     <p class="betaMessage">Checking access…</p>
+  </div>
+</div>
+<div id="betaContactGate">
+  <div class="box">
+    <h2>Beta tester info</h2>
+    <p id="betaContactIntro">Before using the app, please enter your name and email address. Optionally, you can enter your phone number and specify the device you are using. You will not receive any unwanted messages; this is only for logging parts.</p>
+    <div id="betaContactForm">
+      <div class="field">
+        <label>First name *</label>
+        <input type="text" id="bcFirstName" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label>Last initial *</label>
+        <input type="text" id="bcLastInitial" maxlength="1" autocomplete="family-name">
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="bcEmail" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Device type (optional)</label>
+        <select id="bcDeviceType">
+          <option value="">Not specified</option>
+          <option value="mobile">Mobile</option>
+          <option value="desktop">Desktop</option>
+          <option value="web">Web</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="text" id="bcPhone" autocomplete="tel">
+      </div>
+      <div id="bcError" style="display:none;"></div>
+      <button class="ctaBtn" id="bcSaveBtn" type="button">Continue to app</button>
+    </div>
   </div>
 </div>
 <div id="consentGate">
@@ -68,7 +112,7 @@
   </div>
 </div>
 
-<div id="app">
+<div id="app" aria-hidden="true">
   <header>
     <h1>Vehicle profile</h1>
     <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
@@ -121,12 +165,23 @@ const PROFILE_KEY = 'maintenance-dashboard-vehicle-profiles-v1';
 const consentGate = document.getElementById('consentGate');
 function showGate(){ consentGate.style.display = 'flex'; }
 function hideGate(){ consentGate.style.display = 'none'; }
-if (localStorage.getItem(CONSENT_KEY) === 'accepted') { hideGate(); } else { showGate(); }
+hideGate();
 document.getElementById('acceptDisclaimer').addEventListener('click', () => {
   try { localStorage.setItem(CONSENT_KEY, 'accepted'); } catch (e) {}
   hideGate();
 });
 document.getElementById('reshowDisclaimer').addEventListener('click', showGate);
+
+// Beta tester contact gate (Wave 1.6): mandatory landing gate shared with
+// navigator.html/silhouette-explorer.html/a3-explorer-standalone.html via
+// app/beta.js's requireBetaContactGate(). The app stays hidden and the
+// disclaimer is shown only after this gate passes, matching navigator.html.
+const appEl = document.getElementById('app');
+function showApp() {
+  appEl.classList.add('ready');
+  appEl.setAttribute('aria-hidden', 'false');
+  if (localStorage.getItem(CONSENT_KEY) !== 'accepted') showGate();
+}
 
 function loadProfiles() {
   try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch (e) { return {}; }
@@ -260,7 +315,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   setTimeout(() => { successEl.style.display = 'none'; }, 4000);
 });
 
-betaEnforceGate().then((ok) => { if (ok) syncProfileFromServer(); });
+betaEnforceGate().then((ok) => { if (ok) requireBetaContactGate(() => { showApp(); return syncProfileFromServer(); }); });
 </script>
 </body>
 </html>

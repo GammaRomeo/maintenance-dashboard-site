@@ -167,3 +167,99 @@ async function betaEnforceGate() {
   }
   return false;
 }
+
+// Wave 1.6 (all-pages gate close): the mandatory tester-contact landing gate
+// used to exist only in navigator.html's inline script, so a direct link to
+// vehicle-profile.html / silhouette-explorer.html / a3-explorer-standalone.html
+// — all of which already call betaEnforceGate() above — could reach real app
+// content without ever passing it. This section is the single shared
+// implementation of the gate's validation/save/readback behavior, so it isn't
+// copy-pasted per page. Host pages provide the markup (an overlay with
+// id="betaContactGate" containing #bcFirstName, #bcLastInitial, #bcEmail,
+// #bcDeviceType, #bcPhone, #bcError and a #bcSaveBtn button — see
+// navigator.html for the reference markup/copy, which every gated page reuses
+// verbatim).
+//
+// navigator.html keeps its own local requireBetaContactBeforeApp() wrapper
+// (its exact shape is pinned by test/navigator-contact-gate.test.mjs) built on
+// top of hideBetaContactGate()/showBetaContactGate()/wireBetaContactSaveButton()
+// below; vehicle-profile.html, silhouette-explorer.html and
+// a3-explorer-standalone.html instead call the all-in-one
+// requireBetaContactGate(onReady) further down, which covers the same
+// found/fail-open/fresh-save paths without needing a page-local wrapper.
+BetaGate.contactSaved = false;
+BetaGate.contactRecord = null;
+
+function hideBetaContactGate() {
+  const el = document.getElementById('betaContactGate');
+  if (el) el.style.display = 'none';
+}
+
+function showBetaContactGate() {
+  const el = document.getElementById('betaContactGate');
+  if (el) el.style.display = 'flex';
+  const errEl = document.getElementById('bcError');
+  if (errEl) errEl.style.display = 'none';
+}
+
+// Wires #bcSaveBtn's click handler exactly once per page load. `onSaved` is
+// called after a successful save, once the gate overlay has already been
+// hidden, so the host page can reveal its own content / re-run its init.
+let _betaContactSaveWired = false;
+function wireBetaContactSaveButton(onSaved) {
+  const btn = document.getElementById('bcSaveBtn');
+  if (!btn || _betaContactSaveWired) return;
+  _betaContactSaveWired = true;
+  btn.addEventListener('click', async () => {
+    const firstName = document.getElementById('bcFirstName').value.trim();
+    const lastInitial = document.getElementById('bcLastInitial').value.trim();
+    const email = document.getElementById('bcEmail').value.trim();
+    const deviceType = document.getElementById('bcDeviceType').value;
+    const phone = document.getElementById('bcPhone').value.trim();
+    const errEl = document.getElementById('bcError');
+    if (!firstName || !/^[A-Za-z]$/.test(lastInitial) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errEl.textContent = 'Please enter your first name, a single-letter last initial, and a valid email.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const result = await BetaGate.submitContact({ firstName, lastInitial, email, deviceType, phone });
+    if (result.ok) {
+      BetaGate.contactRecord = result.contact;
+      BetaGate.contactSaved = true;
+      hideBetaContactGate();
+      if (onSaved) await onSaved();
+    } else {
+      errEl.textContent = result.error || 'Could not save your info. Please try again.';
+      errEl.style.display = 'block';
+    }
+  });
+}
+
+// All-in-one mandatory landing gate for pages that don't need navigator.html's
+// exact legacy function shape (see the comment above). Resolves true once the
+// app should render and calls `onReady` exactly once to do so — either
+// immediately (an existing contact record was found on readback, or
+// BETA_API_BASE is unset so the build fails open) or later, when the save
+// button succeeds. Resolves false while the gate overlay is blocking (caller
+// does not need to act further in that case; the button click handler takes
+// over from here). Unlike navigator.html (whose #app stays CSS-hidden by
+// default until shown), these host pages' main content isn't necessarily
+// hidden ahead of time, so the overlay is shown synchronously up front —
+// before the fetchContact() round-trip — rather than only after a "not found"
+// result, closing the brief gap where nothing would otherwise be blocking it.
+async function requireBetaContactGate(onReady) {
+  if (!BETA_API_BASE) { if (onReady) await onReady(); return true; }
+  wireBetaContactSaveButton(onReady);
+  showBetaContactGate();
+  const result = await BetaGate.fetchContact();
+  if (result.found && result.contact) {
+    BetaGate.contactRecord = result.contact;
+    BetaGate.contactSaved = true;
+    hideBetaContactGate();
+    if (onReady) await onReady();
+    return true;
+  }
+  BetaGate.contactSaved = false;
+  showBetaContactGate();
+  return false;
+}

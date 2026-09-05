@@ -465,12 +465,14 @@ document.getElementById('srSubmitBtn').addEventListener('click', async () => {
   const confirmed = document.getElementById('srConfirm').checked;
   const errEl = document.getElementById('srError');
   const okEl = document.getElementById('srSuccess');
-  if (BETA_API_BASE && !betaContactSaved) {
+  if (BETA_API_BASE && !BetaGate.contactSaved) {
+    // Unreachable in practice: the app stays hidden behind #betaContactGate
+    // (see requireBetaContactBeforeApp() below) until a contact is saved, so
+    // this form can't be reached first. Kept as a defensive guard in case that
+    // invariant is ever broken by a future change.
     errEl.textContent = 'Please save your beta tester info (name, last initial, email) above before submitting data.';
     errEl.style.display = 'block';
     okEl.style.display = 'none';
-    showContactForm(false);
-    document.getElementById('betaContactBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
   if (!fastenerName || !torqueValue || !confirmed) {
@@ -512,9 +514,12 @@ document.getElementById('srSubmitBtn').addEventListener('click', async () => {
 // Beta tester contact registry: first name and email are mandatory before the
 // app renders for live beta users; device type and phone are optional. This is
 // the landing gate after token access and before normal app initialization.
-let betaContactSaved = false;
-let betaContactRecord = null;
-const betaContactGate = document.getElementById('betaContactGate');
+// The actual validation/save/overlay behavior is shared with the other three
+// beta-gated pages via app/beta.js (hideBetaContactGate/showBetaContactGate/
+// wireBetaContactSaveButton) so it isn't duplicated here; this page only wires
+// its own app-visibility/disclaimer sequencing around that shared behavior,
+// and keeps this exact function shape since it's covered by
+// test/navigator-contact-gate.test.mjs.
 const appEl = document.getElementById('app');
 
 function showApp() {
@@ -523,64 +528,24 @@ function showApp() {
   if (localStorage.getItem(CONSENT_KEY) !== 'accepted') showGate();
 }
 
-function hideContactGate() {
-  betaContactGate.style.display = 'none';
-}
-
-function showContactGate() {
-  betaContactGate.style.display = 'flex';
-  appEl.classList.remove('ready');
-  appEl.setAttribute('aria-hidden', 'true');
-  document.getElementById('bcError').style.display = 'none';
-}
-
-function prefillContactForm() {
-  if (!betaContactRecord) return;
-  document.getElementById('bcFirstName').value = betaContactRecord.firstName || '';
-  document.getElementById('bcLastInitial').value = betaContactRecord.lastInitial || '';
-  document.getElementById('bcEmail').value = betaContactRecord.email || '';
-  document.getElementById('bcDeviceType').value = betaContactRecord.deviceType || '';
-  document.getElementById('bcPhone').value = betaContactRecord.phone || '';
-}
-
 async function requireBetaContactBeforeApp() {
   if (!BETA_API_BASE) { showApp(); return true; } // local/dev builds fail open
   const result = await BetaGate.fetchContact();
   if (result.found && result.contact) {
-    betaContactRecord = result.contact;
-    betaContactSaved = true;
-    hideContactGate();
+    BetaGate.contactRecord = result.contact;
+    BetaGate.contactSaved = true;
+    hideBetaContactGate();
     showApp();
     return true;
   }
-  betaContactSaved = false;
-  showContactGate();
+  BetaGate.contactSaved = false;
+  showBetaContactGate();
   return false;
 }
 
-document.getElementById('bcSaveBtn').addEventListener('click', async () => {
-  const firstName = document.getElementById('bcFirstName').value.trim();
-  const lastInitial = document.getElementById('bcLastInitial').value.trim();
-  const email = document.getElementById('bcEmail').value.trim();
-  const deviceType = document.getElementById('bcDeviceType').value;
-  const phone = document.getElementById('bcPhone').value.trim();
-  const errEl = document.getElementById('bcError');
-  if (!firstName || !/^[A-Za-z]$/.test(lastInitial) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errEl.textContent = 'Please enter your first name, a single-letter last initial, and a valid email.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const result = await BetaGate.submitContact({ firstName, lastInitial, email, deviceType, phone });
-  if (result.ok) {
-    betaContactRecord = result.contact;
-    betaContactSaved = true;
-    hideContactGate();
-    showApp();
-    await init();
-  } else {
-    errEl.textContent = result.error || 'Could not save your info. Please try again.';
-    errEl.style.display = 'block';
-  }
+wireBetaContactSaveButton(async () => {
+  showApp();
+  await init();
 });
 
 betaEnforceGate().then((ok) => { if (ok) requireBetaContactBeforeApp().then((ok) => { if (ok) init(); }); });
