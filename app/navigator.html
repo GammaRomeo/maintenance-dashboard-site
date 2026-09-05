@@ -10,7 +10,8 @@
 <meta name="theme-color" content="#15161a">
 <style>
   html, body { margin:0; min-height:100%; background:#15161a; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#f5f5f0; }
-  #app { max-width:640px; margin:0 auto; padding:16px 16px 60px; }
+  #app { max-width:640px; margin:0 auto; padding:16px 16px 60px; display:none; }
+  #app.ready { display:block; }
   header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px; }
   header h1 { font-size:17px; margin:0; font-weight:600; }
   .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
@@ -30,7 +31,7 @@
   .controlsPane .field { margin-bottom:8px; }
   .controlsPane a.link3d { display:block; margin-bottom:7px; font-size:12px; }
 
-  select, input[type=text] { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
+  select, input[type=text], input[type=email] { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
   .field { margin-bottom:12px; }
   .field label { display:block; color:#9a9da3; font-size:12px; margin-bottom:5px; }
 
@@ -65,6 +66,10 @@
   #selfReportForm.open { display:block; }
   #selfReportForm h3 { font-size:14px; margin:0 0 4px; }
 
+  #betaContactGate { position:fixed; inset:0; background:rgba(10,11,13,0.98); z-index:250; display:none; align-items:center; justify-content:center; padding:20px; }
+  #betaContactGate .box { width:min(440px, 100%); background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px; }
+  #betaContactGate h2 { font-size:16px; margin:0 0 8px; color:#f5f5f0; }
+  #betaContactGate p { color:#c8cad0; font-size:13px; line-height:1.5; margin:0 0 12px; }
   #betaContactBox { display:none; background:#1a1b1f; border:1px solid #2f3238; border-radius:12px; padding:16px; margin-top:14px; }
   #betaContactBox h3 { font-size:14px; margin:0 0 4px; }
   #betaContactSummary { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; color:#c8cad0; }
@@ -108,7 +113,43 @@
   </div>
 </div>
 
-<div id="app">
+<div id="betaContactGate">
+  <div class="box">
+    <h2>Beta tester info</h2>
+    <p id="betaContactIntro">Before using the app, please enter your name and email address. Optionally, you can enter your phone number and specify the device you are using. You will not receive any unwanted messages; this is only for logging parts.</p>
+    <div id="betaContactForm">
+      <div class="field">
+        <label>First name *</label>
+        <input type="text" id="bcFirstName" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label>Last initial *</label>
+        <input type="text" id="bcLastInitial" maxlength="1" autocomplete="family-name">
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="bcEmail" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Device type (optional)</label>
+        <select id="bcDeviceType">
+          <option value="">Not specified</option>
+          <option value="mobile">Mobile</option>
+          <option value="desktop">Desktop</option>
+          <option value="web">Web</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="text" id="bcPhone" autocomplete="tel">
+      </div>
+      <div id="bcError" style="display:none;"></div>
+      <button class="ctaBtn" id="bcSaveBtn" type="button">Continue to app</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" aria-hidden="true">
   <div class="topSplit">
     <div class="previewPane" id="previewPane" title="Open diagram view">
       <svg id="previewSvg" viewBox="0 0 300 560" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -150,49 +191,10 @@
     <button class="ctaBtn" id="showSelfReportBtn">Add what you know</button>
   </div>
 
-  <div id="betaContactBox">
-    <h3>Beta tester info</h3>
-    <p id="betaContactIntro" class="warnBox" style="display:none;">We need your first name, last initial, and email so we can follow up on your beta feedback. This is required once before submitting self-reported data below — it does not affect browsing the dashboard.</p>
-    <div id="betaContactSummary" style="display:none;">
-      <span id="betaContactSummaryText"></span>
-      <button class="secondaryBtn" id="betaContactEditBtn" type="button">Edit</button>
-    </div>
-    <div id="betaContactForm" style="display:none;">
-      <div class="field">
-        <label>First name *</label>
-        <input type="text" id="bcFirstName">
-      </div>
-      <div class="field">
-        <label>Last initial *</label>
-        <input type="text" id="bcLastInitial" maxlength="1">
-      </div>
-      <div class="field">
-        <label>Email *</label>
-        <input type="email" id="bcEmail">
-      </div>
-      <div class="field">
-        <label>Device type (optional)</label>
-        <select id="bcDeviceType">
-          <option value="">Not specified</option>
-          <option value="mobile">Mobile</option>
-          <option value="desktop">Desktop</option>
-          <option value="web">Web</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Phone (optional)</label>
-        <input type="text" id="bcPhone">
-      </div>
-      <div id="bcError" style="display:none;"></div>
-      <button class="ctaBtn" id="bcSaveBtn" type="button">Save</button>
-      <button class="secondaryBtn" id="bcCancelBtn" type="button" style="display:none;">Cancel</button>
-    </div>
-  </div>
-
   <div id="selfReportForm">
     <h3>Add a fastener spec</h3>
     <div class="warnBox">
-      Self-reported data is <strong>not verified by Maintenance Dashboard</strong> and is shown separately from sourced entries. Don't submit anything you're not confident about — other users may rely on it. Never guess a safety-critical spec (wheels, suspension, brakes, steering) from memory alone.
+      Self-reported data is shown separately from sourced entries and marked as unverified. Please enter only information you can trace back to your own notes, service work, or a source you trust. Safety-critical specs should still be checked against OEM documentation before use.
     </div>
     <div class="field">
       <label>Vehicle (make / model / year, if not already selected above)</label>
@@ -485,63 +487,53 @@ document.getElementById('srSubmitBtn').addEventListener('click', async () => {
   }
 });
 
-// Beta tester contact registry: first name / last initial / email are mandatory
-// once (so Gregg can reach testers about feedback); device type and phone are
-// optional. Reading the dashboard is never blocked on this — only submitting
-// self-reported fastener data is (see srSubmitBtn handler above).
+// Beta tester contact registry: first name and email are mandatory before the
+// app renders for live beta users; device type and phone are optional. This is
+// the landing gate after token access and before normal app initialization.
 let betaContactSaved = false;
 let betaContactRecord = null;
-const betaContactBox = document.getElementById('betaContactBox');
+const betaContactGate = document.getElementById('betaContactGate');
+const appEl = document.getElementById('app');
 
-function renderContactSummary() {
-  const el = document.getElementById('betaContactSummaryText');
-  if (betaContactRecord) {
-    el.textContent = `${betaContactRecord.firstName} ${betaContactRecord.lastInitial}. — ${betaContactRecord.email}`;
-  }
+function showApp() {
+  appEl.classList.add('ready');
+  appEl.setAttribute('aria-hidden', 'false');
 }
 
-function showContactForm(prefill) {
-  betaContactBox.style.display = 'block';
-  document.getElementById('betaContactForm').style.display = 'block';
-  document.getElementById('betaContactSummary').style.display = 'none';
-  document.getElementById('bcCancelBtn').style.display = betaContactRecord ? 'inline-block' : 'none';
+function hideContactGate() {
+  betaContactGate.style.display = 'none';
+}
+
+function showContactGate() {
+  betaContactGate.style.display = 'flex';
+  appEl.classList.remove('ready');
+  appEl.setAttribute('aria-hidden', 'true');
   document.getElementById('bcError').style.display = 'none';
-  if (prefill && betaContactRecord) {
-    document.getElementById('bcFirstName').value = betaContactRecord.firstName || '';
-    document.getElementById('bcLastInitial').value = betaContactRecord.lastInitial || '';
-    document.getElementById('bcEmail').value = betaContactRecord.email || '';
-    document.getElementById('bcDeviceType').value = betaContactRecord.deviceType || '';
-    document.getElementById('bcPhone').value = betaContactRecord.phone || '';
-  } else if (!prefill) {
-    ['bcFirstName','bcLastInitial','bcEmail','bcPhone'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('bcDeviceType').value = '';
-  }
 }
 
-function showContactSummary() {
-  betaContactBox.style.display = 'block';
-  document.getElementById('betaContactForm').style.display = 'none';
-  document.getElementById('betaContactSummary').style.display = 'flex';
-  document.getElementById('betaContactIntro').style.display = 'none';
-  renderContactSummary();
+function prefillContactForm() {
+  if (!betaContactRecord) return;
+  document.getElementById('bcFirstName').value = betaContactRecord.firstName || '';
+  document.getElementById('bcLastInitial').value = betaContactRecord.lastInitial || '';
+  document.getElementById('bcEmail').value = betaContactRecord.email || '';
+  document.getElementById('bcDeviceType').value = betaContactRecord.deviceType || '';
+  document.getElementById('bcPhone').value = betaContactRecord.phone || '';
 }
 
-async function initBetaContact() {
-  if (!BETA_API_BASE) return; // fails open — no gate, no contact capture
+async function requireBetaContactBeforeApp() {
+  if (!BETA_API_BASE) { showApp(); return true; } // local/dev builds fail open
   const result = await BetaGate.fetchContact();
   if (result.found && result.contact) {
     betaContactRecord = result.contact;
     betaContactSaved = true;
-    showContactSummary();
-  } else {
-    betaContactSaved = false;
-    document.getElementById('betaContactIntro').style.display = 'block';
-    showContactForm(false);
+    hideContactGate();
+    showApp();
+    return true;
   }
+  betaContactSaved = false;
+  showContactGate();
+  return false;
 }
-
-document.getElementById('betaContactEditBtn').addEventListener('click', () => showContactForm(true));
-document.getElementById('bcCancelBtn').addEventListener('click', () => showContactSummary());
 
 document.getElementById('bcSaveBtn').addEventListener('click', async () => {
   const firstName = document.getElementById('bcFirstName').value.trim();
@@ -559,14 +551,16 @@ document.getElementById('bcSaveBtn').addEventListener('click', async () => {
   if (result.ok) {
     betaContactRecord = result.contact;
     betaContactSaved = true;
-    showContactSummary();
+    hideContactGate();
+    showApp();
+    await init();
   } else {
     errEl.textContent = result.error || 'Could not save your info. Please try again.';
     errEl.style.display = 'block';
   }
 });
 
-betaEnforceGate().then((ok) => { if (ok) { init(); initBetaContact(); } });
+betaEnforceGate().then((ok) => { if (ok) requireBetaContactBeforeApp().then((ok) => { if (ok) init(); }); });
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
