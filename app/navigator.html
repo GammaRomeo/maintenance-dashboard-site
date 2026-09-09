@@ -60,6 +60,12 @@
   .badge.tuner { background:#2a1233; color:#c68fe6; }
   .badge.self-reported { background:#1a2333; color:#6fa8e0; }
 
+  #vehicleResearchPanel { display:none; background:#171a1f; border:1px solid #333842; border-radius:12px; padding:13px 14px; margin:0 0 14px; }
+  #vehicleResearchPanel h3 { margin:0 0 6px; font-size:13.5px; color:#f5f5f0; }
+  #vehicleResearchPanel p { margin:0 0 8px; color:#c8cad0; font-size:12.5px; line-height:1.45; }
+  #vehicleResearchPanel .questionTitle { color:#e0ab3f; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin:10px 0 4px; }
+  #vehicleResearchPanel ol { margin:0; padding-left:19px; color:#c8cad0; font-size:12px; line-height:1.45; }
+
   .emptyState { text-align:center; padding:40px 20px; color:#9a9da3; }
   .emptyState h2 { color:#e8e8e2; font-size:16px; margin:0 0 8px; }
   .emptyState p { font-size:13px; line-height:1.5; }
@@ -182,6 +188,7 @@
   </div>
 
   <div id="dataView" style="display:none;">
+    <div id="vehicleResearchPanel"></div>
     <div class="searchRow">
       <input type="text" id="searchInput" placeholder="Search fasteners…">
     </div>
@@ -307,8 +314,10 @@ const previewPane = document.getElementById('previewPane');
 function renderPreview(vehicleClass, entry) {
   const svg = document.getElementById('previewSvg');
   if (entry && entry.topDownImage) {
-    svg.setAttribute('viewBox', '0 0 300 560');
-    svg.innerHTML = `<image href="${entry.topDownImage}" x="0" y="0" width="300" height="560" preserveAspectRatio="xMidYMid meet"></image>`;
+    const vb = entry.topDownViewBox || '0 0 300 560';
+    const [, , w, h] = vb.split(/\s+/).map(Number);
+    svg.setAttribute('viewBox', vb);
+    svg.innerHTML = `<image href="${entry.topDownImage}" x="0" y="0" width="${w || 300}" height="${h || 560}" preserveAspectRatio="xMidYMid meet"></image>`;
     return;
   }
   const cls = getSilhouetteClass(vehicleClass || 'sedan');
@@ -355,6 +364,7 @@ async function selectVehicle(id) {
     vehicle3dLink.style.display = 'none';
     document.getElementById('vehicleDiagramLink').style.display = 'none';
     document.getElementById('profileLinkAnchor').href = 'vehicle-profile.html';
+    renderVehicleResearchPanel(null);
     renderPreview('sedan');
     showEmpty();
     return;
@@ -387,6 +397,7 @@ async function selectVehicle(id) {
   }
   const selfReported = mergedSelfReported.map(r => ({ ...r, sourceTier: 'self-reported' }));
   currentFasteners = dataset.fasteners.concat(selfReported);
+  renderVehicleResearchPanel(dataset);
 
   document.getElementById('vehicleDiagramLink').style.display = 'block';
   document.getElementById('diagramLinkAnchor').href = `silhouette-explorer.html?vehicle=${encodeURIComponent(entry.id)}`;
@@ -405,6 +416,24 @@ async function selectVehicle(id) {
     renderTierChips();
     renderResults();
   }
+}
+
+function renderVehicleResearchPanel(dataset) {
+  const panel = document.getElementById('vehicleResearchPanel');
+  const vehicle = dataset && dataset.vehicle;
+  const status = vehicle && vehicle.researchStatus;
+  const questions = (vehicle && Array.isArray(vehicle.researchQuestions)) ? vehicle.researchQuestions : [];
+  if (!status && !questions.length) {
+    panel.style.display = 'none';
+    panel.innerHTML = '';
+    return;
+  }
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <h3>${vehicle.make || ''} ${vehicle.model || ''} ${vehicle.year || vehicle.yearRange || ''} research status</h3>
+    ${status ? `<p>${status}</p>` : ''}
+    ${questions.length ? `<div class="questionTitle">Questions for Travis</div><ol>${questions.map(q => `<li>${q}</li>`).join('')}</ol>` : ''}
+  `;
 }
 
 function showEmpty() {

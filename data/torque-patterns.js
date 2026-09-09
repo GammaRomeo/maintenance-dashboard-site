@@ -39,10 +39,10 @@ const TORQUE_PATTERN_LAYOUTS = {
 };
 
 const TORQUE_PATTERN_LABELS = {
-  "star-5": "5-point star pattern",
-  "inside-out-4": "4-point inside-out pattern",
-  "inside-out-6": "6-point inside-out pattern",
-  "inside-out-10": "10-point inside-out pattern",
+  "star-5": "5-point star tightening order",
+  "inside-out-4": "4-point inside-out tightening order",
+  "inside-out-6": "6-point inside-out tightening order",
+  "inside-out-10": "10-point inside-out tightening order",
 };
 
 /**
@@ -115,7 +115,7 @@ function renderTorquePatternDetail(fastener) {
     const svg = renderTighteningPatternSVG(fastener.tighteningPattern);
     if (svg) {
       const label = TORQUE_PATTERN_LABELS[fastener.tighteningPattern] || fastener.tighteningPattern;
-      parts.push(`<div class="torquePatternDiagram">${svg}<div class="torquePatternLabel">${label}</div></div>`);
+      parts.push(`<div class="torquePatternDiagram">${svg}<div class="torquePatternLabel">${label}<br><span>Shows the tightening order, not wheel design.</span></div></div>`);
     }
   }
   if (fastener.patternNote) {
