@@ -50,6 +50,37 @@
     "transmission": "Manual",
     "dataFile": "vw-jetta-tdi-2001-manual.json",
     "has3D": false,
-    "vehicleClass": "sedan"
+    "vehicleClass": "sedan",
+    "topDownImage": "img/generic-sedan-topview.svg",
+    "topDownZones": {
+      "engine": {
+        "cx": 179,
+        "cy": 55
+      },
+      "frontLeft": {
+        "cx": 22,
+        "cy": 140
+      },
+      "frontRight": {
+        "cx": 332,
+        "cy": 137
+      },
+      "rearLeft": {
+        "cx": 30,
+        "cy": 662
+      },
+      "rearRight": {
+        "cx": 325,
+        "cy": 652
+      },
+      "exhaust": {
+        "cx": 179,
+        "cy": 745
+      },
+      "interior": {
+        "cx": 179,
+        "cy": 390
+      }
+    }
   }
 ]

@@ -1,28 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Generic top-down car silhouette.
+  Direct generic sedan silhouette from Gregg's supplied public-domain source.
 
-  Derived from a public-domain top-view car clip-art SVG sourced from
-  Openclipart (http://openclipart.org/), dedicated to the public domain
-  under http://creativecommons.org/licenses/publicdomain/ (see the original
-  file's embedded RDF/Dublin Core metadata: dc:publisher Openclipart,
-  cc:license .../licenses/publicdomain/, permitting reproduction,
-  distribution, and derivative works).
+  Source: /Users/gregg/Downloads/car_topview.svg
+  Publisher/license in source metadata: Openclipart, public domain,
+  http://creativecommons.org/licenses/publicdomain/.
 
-  This derivative keeps the original body-outline path and four wheel
-  rectangles, then adds simplified monochrome cabin/window panel paths derived
-  from the source's broad hood/cabin/trunk panel geometry. Gradients, color,
-  mirrors, text, chrome, trim, and other decorative details were stripped. It is
-  intentionally generic and de-badged -- not a representation of any specific
-  make or model. The same path/rect data is embedded directly in
-  ../../data/silhouettes.js (SILHOUETTE_CLASSES.sedan) for in-app rendering.
+  This file keeps the car's source geometry directly rather than replacing it
+  with a hand-drawn oval/capsule. It removes the original color gradients and
+  non-car text group, then renders the car as a monochrome top-view silhouette
+  with subtle panel separation so it still reads as a car in the app.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 358.85 789.36">
-  <path d="m178.73 782.98c-113.07 2.362-130.4-17.92-147.11-21.261-16.705-38.776-19.877-365.73-9.855-392.46 7.493-60.54-4.936-70.565-8.687-143.53-7.14-85.213 9.815-37.829-4.439-124.48 21.658-90.216-19.136-92.053 168.52-100.63 172.21 2.401 147.96 10.415 169.61 100.63-14.254 86.652 2.701 39.268-4.439 124.48-3.751 72.961-16.18 82.986-8.687 143.53 10.022 26.727 6.85 353.68-9.855 392.46-26.153 15.153-95.459 21.261-145.07 21.261z" fill="#22242a" stroke="#3a3c40" stroke-width="2"/>
-  <path d="M 55 255 C 95 238 135 230 180 230 C 225 230 265 240 315 258 L 294 360 C 188 334 172 334 64 360 Z" fill="#0f1116" stroke="#4b5563" stroke-width="2"/>
-  <path d="M 81 536 C 145 547 216 546 279 534 C 290 590 298 680 298 695 C 281 718 185 726 178 726 C 176 726 78 718 60 702 C 61 690 70 590 81 536 Z" fill="#0f1116" stroke="#4b5563" stroke-width="2"/>
-  <rect x="8.6333" y="101.12" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
-  <rect x="318.79" y="98.038" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
-  <rect x="16.287" y="623.04" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
-  <rect x="311.29" y="613.04" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 358.85 789.36" role="img" aria-label="Generic public-domain sedan top-view silhouette">
+  <rect rx="8.5849" ry="8.5849" height="78.696" width="27.775" y="623.04" x="16.287" fill="#050505" stroke="#111827" stroke-width="2"/>
+  <rect rx="8.5849" ry="8.5849" height="78.696" width="27.775" y="613.04" x="311.29" fill="#050505" stroke="#111827" stroke-width="2"/>
+  <rect rx="8.5849" ry="8.5849" height="78.696" width="27.775" y="98.038" x="318.79" fill="#050505" stroke="#111827" stroke-width="2"/>
+  <rect rx="8.5849" ry="8.5849" height="78.696" width="27.775" y="101.12" x="8.6333" fill="#050505" stroke="#111827" stroke-width="2"/>
+
+  <path d="m178.73 782.98c-113.07 2.362-130.4-17.92-147.11-21.261-16.705-38.776-19.877-365.73-9.855-392.46 7.493-60.54-4.936-70.565-8.687-143.53-7.14-85.213 9.815-37.829-4.439-124.48 21.658-90.216-19.136-92.053 168.52-100.63 172.21 2.401 147.96 10.415 169.61 100.63-14.254 86.652 2.701 39.268-4.439 124.48-3.751 72.961-16.18 82.986-8.687 143.53 10.022 26.727 6.85 353.68-9.855 392.46-26.153 15.153-95.459 21.261-145.07 21.261z" fill="#16181d" stroke="#f8fafc" stroke-width="4"/>
+
+  <path d="m37.198 44.521c-11.667 18.667-10.816 196.22 7.851 210.22 18.03-14.851 122.48-28.646 142.34-27.364 20.288-1.492 99.694 8.055 124.09 22.697 6.577 2.13 19.727-205.55 1.059-219.55-58.34-16.344-252.01-16.344-275.34 13.99z" fill="#242833" stroke="#94a3b8" stroke-width="2"/>
+  <path d="m41.764 257.39s65.53-26.897 138.64-27.585c65.833-0.64088 95.565 9.623 135.61 25.019-4.8534 48.756-9.7078 94.943-21.843 110.34-111.64-28.23-118.92-28.23-230.56 0-2.43-15.39-24.273-105.21-21.846-107.77z" fill="#0b0d12" stroke="#64748b" stroke-width="2"/>
+  <path d="m45.51 260.2s63.783-24.762 134.95-25.395c64.078-0.59 93.017 8.859 132 23.033-4.724 44.885-9.449 87.405-21.261 101.58-108.67-25.986-115.75-25.985-224.42 0.001-2.362-14.174-23.623-96.856-21.261-99.218z" fill="none" stroke="#cbd5e1" stroke-width="1.5" opacity="0.55"/>
+  <path d="m75.697 531.43c-12.369 59.368-22.263 173.16-22.263 173.16 19.79 17.316 121.21 24.737 123.69 24.737 7.4212 0 108.84-7.4212 126.16-32.158 0-14.842-9.8956-121.21-19.79-168.21-86.579 12.368-202.84 7.4212-207.79 2.4734z" fill="#242833" stroke="#94a3b8" stroke-width="2"/>
+  <path d="m80.945 536.59c-11.812 56.695-21.261 165.36-21.261 165.36 18.899 16.536 115.75 23.623 118.12 23.623 7.087 0 103.94-7.087 120.48-30.71 0-14.174-9.45-115.75-18.899-160.64-82.681 11.811-193.71 7.087-198.44 2.362z" fill="none" stroke="#cbd5e1" stroke-width="1.5" opacity="0.55"/>
+
+  <path d="m41.537 281.88s21.534 82.442 21.534 82.442 0 154.58-3.0758 157.15c-3.0771 2.5759-27.686 46.372-27.686 46.372s6.1517-280.81 9.2288-285.97z" fill="#050505" opacity="0.72"/>
+  <path d="m318.84 276.88s-21.534 82.442-21.534 82.442 0 154.58 3.0758 157.15c3.0771 2.5759 27.686 46.372 27.686 46.372s-6.1517-280.81-9.2288-285.97z" fill="#050505" opacity="0.72"/>
+  <path d="m43.148 295.63s16.536 75.595 16.536 75.595 0 141.74-2.362 144.1c-2.363 2.362-21.261 42.521-21.261 42.521s4.724-257.49 7.087-262.22z" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <path d="m317.18 290.91s-16.536 75.595-16.536 75.595 0 141.74 2.362 144.1c2.363 2.362 21.261 42.521 21.261 42.521s-4.724-257.49-7.087-262.22z" fill="none" stroke="#64748b" stroke-width="1.5"/>
+
+  <path d="m321.9 279.09l28.348 2.362s14.174 14.174 4.725 21.261c-9.45 7.087-33.073-2.362-33.073-2.362v-21.261z" fill="#16181d" stroke="#f8fafc" stroke-width="2"/>
+  <path d="m36.946 283.82l-28.348 2.362s-14.174 14.174-4.725 21.261c9.45 7.087 33.073-2.362 33.073-2.362v-21.261z" fill="#16181d" stroke="#f8fafc" stroke-width="2"/>
+  <path d="m36.35 310.53c-2.333 25.667-14.991 443.45 4.666 443.34 69.856 26.467 221.62 23.584 278.52-7.0003 17.53-0.0711 6.999-417.68 4.666-443.34" stroke="#cbd5e1" stroke-width="1.5" fill="none" opacity="0.55"/>
 </svg>
