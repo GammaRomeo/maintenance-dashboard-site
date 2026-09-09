@@ -232,8 +232,10 @@ function drawSilhouette(vehicleClass, entry) {
   const useRealImage = entry && entry.topDownImage;
   const zones = useRealImage ? entry.topDownZones : getSilhouetteClass(vehicleClass).zones;
   if (useRealImage) {
+    svg.setAttribute('viewBox', '0 0 300 560');
     svg.innerHTML = `<image href="${entry.topDownImage}" x="0" y="0" width="300" height="560" preserveAspectRatio="xMidYMid meet"></image>`;
   } else {
+    svg.setAttribute('viewBox', getSilhouetteViewBox(vehicleClass));
     const cls = getSilhouetteClass(vehicleClass);
     svg.innerHTML = `
       <path class="bodyShape" d="${cls.bodyPath}"></path>

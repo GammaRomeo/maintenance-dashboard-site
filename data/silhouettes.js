@@ -1,59 +1,55 @@
 // Generic parametric vehicle-class silhouettes — one shape per class, not per
 // vehicle, per the base-tier visual layer described in
-// 02-planning/technical-architecture-schema.md. Each class is an independently
-// drawn, generic top-down outline (not traced or derived from any specific
-// vehicle's design) with the same 7 hotspot zones the 3D explorer uses, so the
-// same fastener data (via zoneId) drives this view for any vehicle that has no
-// purchased/scanned 3D model.
+// 02-planning/technical-architecture-schema.md. Each class has the same 7
+// hotspot zones the 3D explorer uses, so the same fastener data (via zoneId)
+// drives this view for any vehicle that has no purchased/scanned 3D model.
 //
-// viewBox is 0 0 300 560, vehicle facing up (front at low y).
+// Each class defines its own `viewBox` (see getSilhouetteViewBox()) rather
+// than assuming a fixed box, so real source-art proportions (see sedan below)
+// don't have to be distorted to fit one shared box.
 const SILHOUETTE_CLASSES = {
   sedan: {
     label: "Sedan / coupe",
-    // Outline traced as a front-half half-width profile (nose to waist), then
-    // mirrored front-to-rear (about y=269.5) and left-to-right (about x=150) so
-    // the body is a blunt, rounded-bumper shape with a distinct fender flare at
-    // each wheel and a tucked-in waist along the cabin/doors — reads as a car in
-    // top-down view rather than a plain capsule. Independently drawn, not traced
-    // from any specific vehicle's design (see RESUME-HERE.md legal note on this).
-    bodyPath: `
-      M 150.0 34.0 Q 174.0 34.0 180.0 40.0 Q 186.0 46.0 191.0 53.0
-      Q 196.0 60.0 199.5 68.0 Q 203.0 76.0 205.5 85.5 Q 208.0 95.0 218.0 101.5
-      Q 228.0 108.0 233.0 113.0 Q 238.0 118.0 235.0 123.0 Q 232.0 128.0 222.0 134.0
-      Q 212.0 140.0 204.0 146.0 Q 196.0 152.0 193.0 157.0 Q 190.0 162.0 189.0 171.0
-      Q 188.0 180.0 188.0 269.5 Q 188.0 359.0 189.0 368.0 Q 190.0 377.0 193.0 382.0
-      Q 196.0 387.0 204.0 393.0 Q 212.0 399.0 222.0 405.0 Q 232.0 411.0 235.0 416.0
-      Q 238.0 421.0 233.0 426.0 Q 228.0 431.0 218.0 437.5 Q 208.0 444.0 205.5 453.5
-      Q 203.0 463.0 199.5 471.0 Q 196.0 479.0 191.0 486.0 Q 186.0 493.0 180.0 499.0
-      Q 174.0 505.0 150.0 505.0 Q 126.0 505.0 120.0 499.0 Q 114.0 493.0 109.0 486.0
-      Q 104.0 479.0 100.5 471.0 Q 97.0 463.0 94.5 453.5 Q 92.0 444.0 82.0 437.5
-      Q 72.0 431.0 67.0 426.0 Q 62.0 421.0 65.0 416.0 Q 68.0 411.0 78.0 405.0
-      Q 88.0 399.0 96.0 393.0 Q 104.0 387.0 107.0 382.0 Q 110.0 377.0 111.0 368.0
-      Q 112.0 359.0 112.0 269.5 Q 112.0 180.0 111.0 171.0 Q 110.0 162.0 107.0 157.0
-      Q 104.0 152.0 96.0 146.0 Q 88.0 140.0 78.0 134.0 Q 68.0 128.0 65.0 123.0
-      Q 62.0 118.0 67.0 113.0 Q 72.0 108.0 82.0 101.5 Q 92.0 95.0 94.5 85.5
-      Q 97.0 76.0 100.5 68.0 Q 104.0 60.0 109.0 53.0 Q 114.0 46.0 120.0 40.0
-      Q 126.0 34.0 150.0 34.0
-      Z`,
-    windshieldPath: "M 122 186 L 178 186 L 170 226 L 130 226 Z",
-    rearWindowPath: "M 130 313 L 170 313 L 178 353 L 122 353 Z",
+    // Body outline and wheel rects are NOT invented/hand-drawn — they're the
+    // body-outline path and four wheel rects (coordinates unchanged) from a
+    // public-domain top-view car clip-art SVG sourced from Openclipart
+    // (http://openclipart.org/), dedicated to the public domain under
+    // http://creativecommons.org/licenses/publicdomain/ (permits reproduction,
+    // distribution, and derivative works — see the source file's embedded
+    // RDF/Dublin Core metadata). All color/gradient/chrome/trim detail from
+    // the source was stripped for a flat, de-badged, generic silhouette not
+    // representing any specific make or model. See "Generic silhouette asset
+    // provenance" in 02-planning/technical-architecture-schema.md and the
+    // standalone copy at app/img/generic-sedan-topview.svg. Glass paths are
+    // simplified monochrome derivatives of the source's hood/cabin/trunk panel
+    // paths, kept to make the vehicle read as a boxier top-down sedan rather
+    // than a plain oval/capsule.
+    viewBox: "0 0 358.85 789.36",
+    bodyPath: "m178.73 782.98c-113.07 2.362-130.4-17.92-147.11-21.261-16.705-38.776-19.877-365.73-9.855-392.46 7.493-60.54-4.936-70.565-8.687-143.53-7.14-85.213 9.815-37.829-4.439-124.48 21.658-90.216-19.136-92.053 168.52-100.63 172.21 2.401 147.96 10.415 169.61 100.63-14.254 86.652 2.701 39.268-4.439 124.48-3.751 72.961-16.18 82.986-8.687 143.53 10.022 26.727 6.85 353.68-9.855 392.46-26.153 15.153-95.459 21.261-145.07 21.261z",
+    windshieldPath: "M 55 255 C 95 238 135 230 180 230 C 225 230 265 240 315 258 L 294 360 C 188 334 172 334 64 360 Z",
+    rearWindowPath: "M 81 536 C 145 547 216 546 279 534 C 290 590 298 680 298 695 C 281 718 185 726 178 726 C 176 726 78 718 60 702 C 61 690 70 590 81 536 Z",
     wheels: [
-      { x: 52, y: 86, w: 36, h: 66, rx: 9 },
-      { x: 212, y: 86, w: 36, h: 66, rx: 9 },
-      { x: 52, y: 387, w: 36, h: 66, rx: 9 },
-      { x: 212, y: 387, w: 36, h: 66, rx: 9 },
+      { x: 8.6333, y: 101.12, w: 27.775, h: 78.696, rx: 8.5849 },
+      { x: 318.79, y: 98.038, w: 27.775, h: 78.696, rx: 8.5849 },
+      { x: 16.287, y: 623.04, w: 27.775, h: 78.696, rx: 8.5849 },
+      { x: 311.29, y: 613.04, w: 27.775, h: 78.696, rx: 8.5849 },
     ],
     zones: {
-      engine:     { cx: 150, cy: 75 },
-      frontLeft:  { cx: 70,  cy: 119 },
-      frontRight: { cx: 230, cy: 119 },
-      rearLeft:   { cx: 70,  cy: 420 },
-      rearRight:  { cx: 230, cy: 420 },
-      exhaust:    { cx: 150, cy: 475 },
-      interior:   { cx: 150, cy: 270 },
+      engine:     { cx: 179, cy: 55 },
+      frontLeft:  { cx: 22,  cy: 140 },
+      frontRight: { cx: 332, cy: 137 },
+      rearLeft:   { cx: 30,  cy: 662 },
+      rearRight:  { cx: 325, cy: 652 },
+      exhaust:    { cx: 179, cy: 745 },
+      interior:   { cx: 179, cy: 390 },
     },
   },
 };
+
+/** The SVG viewBox a silhouette class's path/rect/zone coordinates were authored against. */
+function getSilhouetteViewBox(vehicleClass) {
+  return getSilhouetteClass(vehicleClass).viewBox || "0 0 300 560";
+}
 
 // Other classes (SUV/crossover, pickup, hatchback) reuse this same approach —
 // a distinct bodyPath/wheel layout with the same 7 zone keys — but aren't drawn
@@ -64,5 +60,5 @@ function getSilhouetteClass(vehicleClass) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { SILHOUETTE_CLASSES, getSilhouetteClass };
+  module.exports = { SILHOUETTE_CLASSES, getSilhouetteClass, getSilhouetteViewBox };
 }

@@ -307,10 +307,12 @@ const previewPane = document.getElementById('previewPane');
 function renderPreview(vehicleClass, entry) {
   const svg = document.getElementById('previewSvg');
   if (entry && entry.topDownImage) {
+    svg.setAttribute('viewBox', '0 0 300 560');
     svg.innerHTML = `<image href="${entry.topDownImage}" x="0" y="0" width="300" height="560" preserveAspectRatio="xMidYMid meet"></image>`;
     return;
   }
   const cls = getSilhouetteClass(vehicleClass || 'sedan');
+  svg.setAttribute('viewBox', getSilhouetteViewBox(vehicleClass || 'sedan'));
   svg.innerHTML = `
     <path class="bodyShape" d="${cls.bodyPath}"></path>
     <path class="glassShape" d="${cls.windshieldPath}"></path>

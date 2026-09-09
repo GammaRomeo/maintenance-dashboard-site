@@ -10,13 +10,46 @@
     "vehicleClass": "sedan",
     "topDownImage": "img/audi-a3-8v-topdown.png",
     "topDownZones": {
-      "engine":     { "cx": 150, "cy": 94 },
-      "frontLeft":  { "cx": 234, "cy": 133 },
-      "frontRight": { "cx": 66,  "cy": 133 },
-      "rearLeft":   { "cx": 234, "cy": 427 },
-      "rearRight":  { "cx": 66,  "cy": 427 },
-      "exhaust":    { "cx": 178, "cy": 494 },
-      "interior":   { "cx": 195, "cy": 246 }
+      "engine": {
+        "cx": 150,
+        "cy": 94
+      },
+      "frontLeft": {
+        "cx": 234,
+        "cy": 133
+      },
+      "frontRight": {
+        "cx": 66,
+        "cy": 133
+      },
+      "rearLeft": {
+        "cx": 234,
+        "cy": 427
+      },
+      "rearRight": {
+        "cx": 66,
+        "cy": 427
+      },
+      "exhaust": {
+        "cx": 178,
+        "cy": 494
+      },
+      "interior": {
+        "cx": 195,
+        "cy": 246
+      }
     }
+  },
+  {
+    "id": "vw-jetta-tdi-2001-manual",
+    "make": "Volkswagen",
+    "model": "Jetta TDI",
+    "platform": "Mk4 / A4 / PQ34",
+    "yearRange": "2001",
+    "year": "2001",
+    "transmission": "Manual",
+    "dataFile": "vw-jetta-tdi-2001-manual.json",
+    "has3D": false,
+    "vehicleClass": "sedan"
   }
 ]

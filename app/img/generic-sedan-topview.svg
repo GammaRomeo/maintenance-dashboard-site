@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Generic top-down car silhouette.
+
+  Derived from a public-domain top-view car clip-art SVG sourced from
+  Openclipart (http://openclipart.org/), dedicated to the public domain
+  under http://creativecommons.org/licenses/publicdomain/ (see the original
+  file's embedded RDF/Dublin Core metadata: dc:publisher Openclipart,
+  cc:license .../licenses/publicdomain/, permitting reproduction,
+  distribution, and derivative works).
+
+  This derivative keeps the original body-outline path and four wheel
+  rectangles, then adds simplified monochrome cabin/window panel paths derived
+  from the source's broad hood/cabin/trunk panel geometry. Gradients, color,
+  mirrors, text, chrome, trim, and other decorative details were stripped. It is
+  intentionally generic and de-badged -- not a representation of any specific
+  make or model. The same path/rect data is embedded directly in
+  ../../data/silhouettes.js (SILHOUETTE_CLASSES.sedan) for in-app rendering.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 358.85 789.36">
+  <path d="m178.73 782.98c-113.07 2.362-130.4-17.92-147.11-21.261-16.705-38.776-19.877-365.73-9.855-392.46 7.493-60.54-4.936-70.565-8.687-143.53-7.14-85.213 9.815-37.829-4.439-124.48 21.658-90.216-19.136-92.053 168.52-100.63 172.21 2.401 147.96 10.415 169.61 100.63-14.254 86.652 2.701 39.268-4.439 124.48-3.751 72.961-16.18 82.986-8.687 143.53 10.022 26.727 6.85 353.68-9.855 392.46-26.153 15.153-95.459 21.261-145.07 21.261z" fill="#22242a" stroke="#3a3c40" stroke-width="2"/>
+  <path d="M 55 255 C 95 238 135 230 180 230 C 225 230 265 240 315 258 L 294 360 C 188 334 172 334 64 360 Z" fill="#0f1116" stroke="#4b5563" stroke-width="2"/>
+  <path d="M 81 536 C 145 547 216 546 279 534 C 290 590 298 680 298 695 C 281 718 185 726 178 726 C 176 726 78 718 60 702 C 61 690 70 590 81 536 Z" fill="#0f1116" stroke="#4b5563" stroke-width="2"/>
+  <rect x="8.6333" y="101.12" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
+  <rect x="318.79" y="98.038" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
+  <rect x="16.287" y="623.04" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
+  <rect x="311.29" y="613.04" width="27.775" height="78.696" rx="8.5849" ry="8.5849" fill="#0e0f11" stroke="#2a2c30" stroke-width="1"/>
+</svg>

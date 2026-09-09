@@ -1,0 +1,66 @@
+{
+  "vehicle": {
+    "id": "vw-jetta-tdi-2001-manual",
+    "make": "Volkswagen",
+    "model": "Jetta TDI",
+    "platform": "Mk4 / A4 / PQ34",
+    "yearRange": "2001",
+    "year": "2001",
+    "transmission": "Manual",
+    "notes": "Starter beta shell for Travis L. Specs intentionally pending source verification."
+  },
+  "zones": [
+    {
+      "id": "engine",
+      "name": "Engine bay",
+      "note": "1.9L TDI manual-transmission starter shell; engine code/source details pending verification.",
+      "defaultMods": [
+        "EGR delete"
+      ]
+    },
+    {
+      "id": "frontLeft",
+      "name": "Driver front \u2014 front suspension / brakes / wheel",
+      "note": "Specs pending source verification.",
+      "defaultMods": [
+        "Lowered suspension / coilover details pending confirmation"
+      ]
+    },
+    {
+      "id": "frontRight",
+      "name": "Passenger front \u2014 front suspension / brakes / wheel",
+      "note": "Specs pending source verification.",
+      "defaultMods": []
+    },
+    {
+      "id": "rearLeft",
+      "name": "Driver rear \u2014 rear suspension / wheels",
+      "note": "Specs pending source verification.",
+      "defaultMods": []
+    },
+    {
+      "id": "rearRight",
+      "name": "Passenger rear \u2014 rear suspension / wheels",
+      "note": "Specs pending source verification.",
+      "defaultMods": []
+    },
+    {
+      "id": "exhaust",
+      "name": "Exhaust",
+      "note": "Catless downpipe reported by tester; legality and exact hardware pending confirmation.",
+      "defaultMods": [
+        "Catless downpipe"
+      ]
+    },
+    {
+      "id": "interior",
+      "name": "Interior / electrical",
+      "note": "Audio and battery/alternator upgrades reported; hardware pending confirmation.",
+      "defaultMods": [
+        "Audio system upgrade",
+        "Battery/alternator upgrade"
+      ]
+    }
+  ],
+  "fasteners": []
+}

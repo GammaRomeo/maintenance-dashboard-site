@@ -22,6 +22,7 @@
   .field { margin-bottom:12px; }
   .field label { display:block; color:#9a9da3; font-size:12px; margin-bottom:5px; }
   .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
 
   .category { border:1px solid #22242a; border-radius:10px; padding:14px; margin-bottom:12px; }
   .category h3 { margin:0 0 10px; font-size:14px; }
@@ -120,9 +121,30 @@
   <a class="backLink" href="navigator.html">&larr; back to spec navigator</a>
   <p class="lede">Tell us about your vehicle and what's been done to it. Check off common modifications, and use the open text under each category for anything specific to your build. Takes about two minutes — the more detail you give, the more useful this gets for you and for other owners of the same vehicle.</p>
 
+  <input type="hidden" id="pfVehicle">
+  <div class="row3">
+    <div class="field">
+      <label>Make</label>
+      <input type="text" id="pfMake">
+    </div>
+    <div class="field">
+      <label>Model</label>
+      <input type="text" id="pfModel">
+    </div>
+    <div class="field">
+      <label>Year</label>
+      <input type="text" id="pfYear">
+    </div>
+  </div>
   <div class="field">
-    <label>Vehicle (make / model / year)</label>
-    <input type="text" id="pfVehicle">
+    <label>Transmission</label>
+    <div class="checkGrid" id="transmissionRow">
+      <label class="checkItem" data-item="Manual"><input type="radio" name="pfTransmission" value="Manual"><span>Manual</span></label>
+      <label class="checkItem" data-item="Automatic"><input type="radio" name="pfTransmission" value="Automatic"><span>Automatic</span></label>
+      <label class="checkItem" data-item="CVT"><input type="radio" name="pfTransmission" value="CVT"><span>CVT</span></label>
+      <label class="checkItem" data-item="DCT"><input type="radio" name="pfTransmission" value="DCT"><span>DCT</span></label>
+      <label class="checkItem" data-item="AMT"><input type="radio" name="pfTransmission" value="AMT"><span>AMT</span></label>
+    </div>
   </div>
   <div class="row2">
     <div class="field">
@@ -232,16 +254,55 @@ MOD_TAXONOMY.forEach(cat => {
   categoriesWrap.appendChild(div);
 });
 
+// Transmission is a mutually-exclusive single choice (native radio inputs
+// enforce this even though the chips are styled like the mod-category
+// checkboxes above), so unlike those checkboxes a click always selects this
+// chip and deselects the others rather than toggling.
+const transmissionRow = document.getElementById('transmissionRow');
+transmissionRow.querySelectorAll('.checkItem').forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    e.preventDefault();
+    chip.querySelector('input').checked = true;
+    transmissionRow.querySelectorAll('.checkItem').forEach(c => c.classList.toggle('checked', c === chip));
+  });
+});
+
 // Resets every field to a given saved profile (or clears the checkboxes/notes when
 // applying a fresh vehicleLabel-only prefill). Shared by the initial local-first
 // load and the cross-device remote-profile merge below, so both paths render
 // identically.
+function parseLegacyVehicleLabel(label) {
+  const text = String(label || '').trim();
+  const yearMatch = text.match(/\b(19|20)\d{2}\b/);
+  const year = yearMatch ? yearMatch[0] : '';
+  const withoutYear = year ? text.replace(year, '').replace(/[()]/g, '').trim() : text;
+  const parts = withoutYear.split(/\s+/).filter(Boolean);
+  return { make: parts[0] || '', model: parts.slice(1).join(' '), year };
+}
+
+function structuredVehicleLabel() {
+  const make = document.getElementById('pfMake').value.trim();
+  const model = document.getElementById('pfModel').value.trim();
+  const year = document.getElementById('pfYear').value.trim();
+  return [make, model, year].filter(Boolean).join(' ');
+}
+
 function applyProfileToForm(profile) {
-  document.getElementById('pfVehicle').value = profile.vehicleLabel || '';
+  const legacy = parseLegacyVehicleLabel(profile.vehicleLabel || '');
+  document.getElementById('pfMake').value = profile.make || legacy.make || '';
+  document.getElementById('pfModel').value = profile.model || legacy.model || '';
+  document.getElementById('pfYear').value = profile.year || legacy.year || '';
+  document.getElementById('pfVehicle').value = profile.vehicleLabel || structuredVehicleLabel();
   document.getElementById('pfTrim').value = profile.trim || '';
   document.getElementById('pfEngine').value = profile.engine || '';
   document.getElementById('pfGeneralNotes').value = profile.generalNotes || '';
   document.getElementById('pfImportText').value = profile.pastedImportText || '';
+  transmissionRow.querySelectorAll('.checkItem').forEach(c => c.classList.remove('checked'));
+  transmissionRow.querySelectorAll('input[type=radio]').forEach(i => { i.checked = false; });
+  if (profile.transmission) {
+    const tChip = transmissionRow.querySelector(`.checkItem[data-item="${profile.transmission}"]`);
+    if (tChip) { tChip.classList.add('checked'); tChip.querySelector('input').checked = true; }
+  }
   categoriesWrap.querySelectorAll('.category').forEach(div => {
     div.querySelectorAll('.checkItem').forEach(chip => { chip.classList.remove('checked'); chip.querySelector('input').checked = false; });
     div.querySelector('.categoryNotes').value = '';
@@ -275,6 +336,9 @@ if (existing) {
     const entry = registry.find(v => v.id === vehicleKey);
     if (entry) {
       staleRegistryLabel = `${entry.make} ${entry.model} (${entry.yearRange})`;
+      document.getElementById('pfMake').value = entry.make || '';
+      document.getElementById('pfModel').value = entry.model || '';
+      document.getElementById('pfYear').value = entry.year || '';
       document.getElementById('pfVehicle').value = staleRegistryLabel;
     }
   }).catch(() => {});
@@ -302,7 +366,8 @@ async function syncProfileFromServer() {
 }
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
-  const vehicleLabel = document.getElementById('pfVehicle').value.trim();
+  const vehicleLabel = structuredVehicleLabel();
+  document.getElementById('pfVehicle').value = vehicleLabel;
   const labelMatchesStaleRegistryEntry = !staleRegistryLabel
     || vehicleLabel.toLowerCase() === staleRegistryLabel.toLowerCase();
   const key = (vehicleKey && labelMatchesStaleRegistryEntry)
@@ -317,6 +382,10 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const profile = {
     vehicleId: key,
     vehicleLabel,
+    make: document.getElementById('pfMake').value.trim(),
+    model: document.getElementById('pfModel').value.trim(),
+    year: document.getElementById('pfYear').value.trim(),
+    transmission: (transmissionRow.querySelector('input:checked') || {}).value || '',
     trim: document.getElementById('pfTrim').value.trim(),
     engine: document.getElementById('pfEngine').value.trim(),
     modifications,
