@@ -6,6 +6,7 @@ const BETA_TOKEN_KEY = 'maintenance-dashboard-beta-token-v1';
 const BETA_APP_VERSION = '1.5.0-beta';
 const BETA_USAGE_THROTTLE_KEY = 'maintenance-dashboard-beta-usage-v1';
 const BETA_USAGE_THROTTLE_MS = 60 * 60 * 1000; // one usage beacon per token per hour
+const BETA_DEVICE_ID_KEY = 'maintenance-dashboard-beta-device-id-v1';
 
 function betaReadToken() {
   const params = new URLSearchParams(window.location.search);
@@ -15,6 +16,46 @@ function betaReadToken() {
     return fromUrl;
   }
   try { return localStorage.getItem(BETA_TOKEN_KEY) || ''; } catch (e) { return ''; }
+}
+
+// A stable per-browser device id, generated once and persisted so the same
+// browser always registers as the same device (repeat registrations don't
+// count against the identity's max-device cap -- see BetaGate.registerDevice()).
+function betaGetDeviceId() {
+  try {
+    const existing = localStorage.getItem(BETA_DEVICE_ID_KEY);
+    if (existing) return existing;
+    const fresh = (window.crypto && window.crypto.randomUUID)
+      ? window.crypto.randomUUID()
+      : `dev-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(BETA_DEVICE_ID_KEY, fresh);
+    return fresh;
+  } catch (e) {
+    // localStorage unavailable (e.g. private mode): fall back to a per-load id
+    // rather than throwing -- this device just won't be recognized as the same
+    // one across reloads, which only affects the max-device count, not access.
+    return `dev-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
+// A short human-readable label for the device list Gregg sees via
+// `scripts/beta-token.sh devices` -- best-effort OS/browser sniffing, not meant
+// to be precise, just enough to tell testers' devices apart.
+function betaDeviceLabel() {
+  const ua = (navigator.userAgent || '');
+  let os = 'Unknown OS';
+  if (/iphone/i.test(ua)) os = 'iPhone';
+  else if (/ipad/i.test(ua)) os = 'iPad';
+  else if (/android/i.test(ua)) os = 'Android';
+  else if (/mac os x/i.test(ua)) os = 'Mac';
+  else if (/windows/i.test(ua)) os = 'Windows';
+  else if (/linux/i.test(ua)) os = 'Linux';
+  let browser = 'Unknown browser';
+  if (/edg\//i.test(ua)) browser = 'Edge';
+  else if (/chrome\//i.test(ua) && !/edg\//i.test(ua)) browser = 'Chrome';
+  else if (/firefox\//i.test(ua)) browser = 'Firefox';
+  else if (/safari\//i.test(ua) && !/chrome\//i.test(ua)) browser = 'Safari';
+  return `${browser} on ${os}`;
 }
 
 const BetaGate = {
@@ -132,6 +173,26 @@ const BetaGate = {
     }
   },
 
+  // Registers this browser as a device under the current identity, right after
+  // a successful config check (see betaEnforceGate()). Fails OPEN on a network
+  // error (a temporary outage should not lock out a device that's already
+  // registered), but surfaces an explicit ok:false from the worker (e.g. the
+  // identity's max-device cap was reached by a brand-new device) so the caller
+  // can block access with a clear message instead of silently granting it.
+  async registerDevice() {
+    if (!BETA_API_BASE || !this.token) return { ok: true, skipped: true };
+    try {
+      const res = await fetch(`${BETA_API_BASE}/api/beta/device`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: this.token, deviceId: betaGetDeviceId(), label: betaDeviceLabel() }),
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: true, offline: true };
+    }
+  },
+
   async submitContact(contact) {
     if (!BETA_API_BASE || !this.token) return { ok: false, offline: true };
     try {
@@ -157,6 +218,15 @@ async function betaEnforceGate() {
   if (gateEl) gateEl.style.display = 'flex';
   const result = await BetaGate.check();
   if (result.enabled) {
+    const deviceResult = await BetaGate.registerDevice();
+    if (deviceResult.ok === false) {
+      if (gateEl) {
+        gateEl.style.display = 'flex';
+        const msgEl = gateEl.querySelector('.betaMessage');
+        if (msgEl) msgEl.textContent = deviceResult.error || 'This beta link has reached its device limit. Contact the developer for help.';
+      }
+      return false;
+    }
     if (gateEl) gateEl.style.display = 'none';
     BetaGate.sendEvent(window.location.pathname.split('/').pop() || 'navigator.html');
     return true;

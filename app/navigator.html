@@ -50,6 +50,10 @@
   .fastener .fname { color:#f0f0ec; font-size:13.5px; font-weight:500; }
   .fastener .fspec { color:#9fd3c7; font-size:12.5px; margin-top:2px; }
   .fastener .fvariant { color:#7a7f87; font-size:11.5px; margin-top:2px; }
+  .torqueStageList { margin:6px 0 0; padding-left:18px; color:#c8cad0; font-size:12px; line-height:1.5; }
+  .torquePatternDiagram { display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .torquePatternLabel { color:#7a7f87; font-size:11px; }
+  .torquePatternNote { color:#e0c08a; font-size:11.5px; margin-top:4px; }
   .badge { display:inline-block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
   .badge.official { background:#12332b; color:#3fdca0; }
   .badge.community { background:#332912; color:#e0ab3f; }
@@ -232,6 +236,7 @@
 </div>
 
 <script src="../data/fastener-data.js"></script>
+<script src="../data/torque-patterns.js"></script>
 <script src="../data/silhouettes.js"></script>
 <script src="beta-config.js"></script>
 <script src="beta.js"></script>
@@ -274,6 +279,19 @@ async function submitSelfReport(vehicleKey, record) {
 let currentVehicle = null;   // registry entry, or null for an unlisted vehicle
 let currentFasteners = [];   // sourced + local self-reported, combined
 let activeTiers = new Set(['official', 'community', 'tuner', 'self-reported']);
+
+// Remembers the tester's explicit vehicle choice (including "__other__") so a
+// fresh page load doesn't silently re-select whatever happens to be first/only
+// in the registry — a real tester (e.g. a Jetta owner with only Audi
+// registered) must actively pick a vehicle or "My vehicle isn't listed"
+// before any vehicle-specific data or profile link is shown.
+const LAST_VEHICLE_KEY = 'maintenance-dashboard-last-vehicle-v1';
+function loadLastVehicleId() {
+  try { return localStorage.getItem(LAST_VEHICLE_KEY); } catch (e) { return null; }
+}
+function saveLastVehicleId(id) {
+  try { localStorage.setItem(LAST_VEHICLE_KEY, id); } catch (e) {}
+}
 
 const vehicleSelect = document.getElementById('vehicleSelect');
 const dataView = document.getElementById('dataView');
@@ -319,10 +337,15 @@ async function init() {
 
   window.__registry = registry;
   vehicleSelect.addEventListener('change', () => selectVehicle(vehicleSelect.value));
-  if (registry.length) selectVehicle(registry[0].id);
+
+  const lastId = loadLastVehicleId();
+  const initialId = (lastId === '__other__' || registry.some(v => v.id === lastId)) ? lastId : '__other__';
+  vehicleSelect.value = initialId;
+  selectVehicle(initialId);
 }
 
 async function selectVehicle(id) {
+  saveLastVehicleId(id);
   document.getElementById('selfReportForm').classList.remove('open');
   if (id === '__other__') {
     currentVehicle = null;
@@ -437,7 +460,8 @@ function renderResults() {
         row.innerHTML = `
           <div class="fname">${f.fastenerName}<span class="badge ${f.sourceTier}">${f.sourceTier}</span></div>
           <div class="fspec">${f.torqueValue}</div>
-          <div class="fvariant">${f.sourceNotes || ''}</div>`;
+          <div class="fvariant">${f.sourceNotes || ''}</div>
+          ${renderTorquePatternDetail(f)}`;
         subDiv.appendChild(row);
       });
       body.appendChild(subDiv);

@@ -259,13 +259,24 @@ function applyProfileToForm(profile) {
 
 const vehicleKey = vehicleKeyFromParams();
 const existing = vehicleKey ? loadProfiles()[vehicleKey] : null;
+
+// If this page was opened with a stale/carried-over ?vehicle=<registry id> (e.g.
+// a tester who never explicitly picked their real vehicle on navigator.html) and
+// no profile has been saved under that id yet, remember the registry entry's
+// canonical label. On save, if the free-text field no longer matches that label
+// (the tester typed their actual vehicle instead), the save is re-keyed as an
+// unlisted/custom vehicle rather than silently attaching to the stale registry id.
+let staleRegistryLabel = null;
 if (existing) {
   applyProfileToForm(existing);
 } else if (vehicleKey) {
   document.getElementById('pfVehicle').value = vehicleKey;
   fetch('../data/vehicles/registry.json').then(r => r.json()).then(registry => {
     const entry = registry.find(v => v.id === vehicleKey);
-    if (entry) document.getElementById('pfVehicle').value = `${entry.make} ${entry.model} (${entry.yearRange})`;
+    if (entry) {
+      staleRegistryLabel = `${entry.make} ${entry.model} (${entry.yearRange})`;
+      document.getElementById('pfVehicle').value = staleRegistryLabel;
+    }
   }).catch(() => {});
 }
 
@@ -292,7 +303,11 @@ async function syncProfileFromServer() {
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const vehicleLabel = document.getElementById('pfVehicle').value.trim();
-  const key = vehicleKey || (vehicleLabel ? `unlisted:${vehicleLabel.toLowerCase()}` : `unlisted:untitled-${Date.now()}`);
+  const labelMatchesStaleRegistryEntry = !staleRegistryLabel
+    || vehicleLabel.toLowerCase() === staleRegistryLabel.toLowerCase();
+  const key = (vehicleKey && labelMatchesStaleRegistryEntry)
+    ? vehicleKey
+    : (vehicleLabel ? `unlisted:${vehicleLabel.toLowerCase()}` : `unlisted:untitled-${Date.now()}`);
   const modifications = Array.from(categoriesWrap.querySelectorAll('.category')).map(div => ({
     system: div.dataset.system,
     commonSelected: Array.from(div.querySelectorAll('.checkItem input:checked')).map(i => i.value),
