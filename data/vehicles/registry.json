@@ -84,5 +84,95 @@
       }
     },
     "topDownViewBox": "0 0 358.85 789.36"
+  },
+  {
+    "id": "honda-civic-10th-gen-2.0l",
+    "make": "Honda",
+    "model": "Civic",
+    "platform": "10th generation (FC)",
+    "yearRange": "2016-2021",
+    "trim": "LX/EX",
+    "engine": "2.0L I4 (K20C2)",
+    "transmission": "CVT",
+    "dataFile": "honda-civic-10th-gen-2.0l.json",
+    "has3D": false,
+    "vehicleClass": "sedan",
+    "topDownImage": "img/generic-sedan-topview.svg",
+    "topDownZones": {
+      "engine": {
+        "cx": 179,
+        "cy": 55
+      },
+      "frontLeft": {
+        "cx": 22,
+        "cy": 140
+      },
+      "frontRight": {
+        "cx": 332,
+        "cy": 137
+      },
+      "rearLeft": {
+        "cx": 30,
+        "cy": 662
+      },
+      "rearRight": {
+        "cx": 325,
+        "cy": 652
+      },
+      "exhaust": {
+        "cx": 179,
+        "cy": 745
+      },
+      "interior": {
+        "cx": 179,
+        "cy": 390
+      }
+    },
+    "topDownViewBox": "0 0 358.85 789.36"
+  },
+  {
+    "id": "toyota-corolla-e170-1.8l",
+    "make": "Toyota",
+    "model": "Corolla",
+    "platform": "E170",
+    "yearRange": "2014-2019",
+    "trim": "LE",
+    "engine": "1.8L I4 (2ZR-FE)",
+    "transmission": "CVT",
+    "dataFile": "toyota-corolla-e170-1.8l.json",
+    "has3D": false,
+    "vehicleClass": "sedan",
+    "topDownImage": "img/generic-sedan-topview.svg",
+    "topDownZones": {
+      "engine": {
+        "cx": 179,
+        "cy": 55
+      },
+      "frontLeft": {
+        "cx": 22,
+        "cy": 140
+      },
+      "frontRight": {
+        "cx": 332,
+        "cy": 137
+      },
+      "rearLeft": {
+        "cx": 30,
+        "cy": 662
+      },
+      "rearRight": {
+        "cx": 325,
+        "cy": 652
+      },
+      "exhaust": {
+        "cx": 179,
+        "cy": 745
+      },
+      "interior": {
+        "cx": 179,
+        "cy": 390
+      }
+    },
+    "topDownViewBox": "0 0 358.85 789.36"
   }
 ]

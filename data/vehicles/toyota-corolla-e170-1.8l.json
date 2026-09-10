@@ -1,0 +1,151 @@
+{
+  "vehicle": {
+    "id": "toyota-corolla-e170-1.8l",
+    "make": "Toyota",
+    "model": "Corolla",
+    "platform": "E170",
+    "yearRange": "2014-2019",
+    "trim": "LE",
+    "engine": "1.8L I4 (2ZR-FE)",
+    "transmission": "CVT",
+    "notes": "Starter selectable profile for the E170 Corolla LE 1.8L/CVT sedan, added from the 2026-09-10 vehicle-selection-expansion research recommendation. Generic de-badged sedan top-down silhouette only — no 3D asset. Populated with a small set of conservative, source-cited community torque values; not tied to a specific owner's car.",
+    "researchStatus": "Starter pass scaffolded from public community/forum sources (ToyotaNation), a circulated 2ZR-FE workshop-manual excerpt, and independent torque-spec-aggregator sites. All values are tagged community tier, not official/factory — this has not been checked against a paid Toyota TechInfo subscription or a purchased factory service manual; verify before use.",
+    "researchQuestions": [
+      "Can you confirm this is the LE trim with the 1.8L 2ZR-FE engine and CVT, not a different trim/engine (e.g., SE/S, or a different-generation Corolla)?",
+      "Are the wheels the stock steel wheels with covers or the factory alloy wheels — does that change the lug nut torque on this specific car?",
+      "Is the oil drain plug the stock bolt, or has it been replaced with an aftermarket/magnetic drain plug?",
+      "What brake pad/rotor brand is currently installed, if known — stock or aftermarket?",
+      "Do you have access to a Toyota factory service manual, TechInfo printout, or dealer paperwork we could use to verify these community-sourced torque values?",
+      "Which additional systems would be most useful to add next: brakes, suspension, CVT fluid service, or something else?"
+    ]
+  },
+  "zones": [
+    {
+      "id": "engine",
+      "name": "Engine bay",
+      "note": "1.8L 2ZR-FE I4, CVT (chain-driven timing, not a belt, on this generation). Oil capacity ~4.4 qt (4.2 L) with filter change, 0W-20 per multiple owner/oil-change-guide sources; confirm against this specific car's owner's manual or dipstick markings before service.",
+      "defaultMods": []
+    },
+    {
+      "id": "frontLeft",
+      "name": "Driver front — front suspension / brakes / wheel",
+      "note": "Starter shell; no suspension/brake torque values populated yet.",
+      "defaultMods": []
+    },
+    {
+      "id": "frontRight",
+      "name": "Passenger front — front suspension / brakes / wheel",
+      "note": "Starter shell; no suspension/brake torque values populated yet.",
+      "defaultMods": []
+    },
+    {
+      "id": "rearLeft",
+      "name": "Driver rear — rear suspension / wheels",
+      "note": "Starter shell; no suspension torque values populated yet.",
+      "defaultMods": []
+    },
+    {
+      "id": "rearRight",
+      "name": "Passenger rear — rear suspension / wheels",
+      "note": "Starter shell; no suspension torque values populated yet.",
+      "defaultMods": []
+    },
+    {
+      "id": "exhaust",
+      "name": "Exhaust",
+      "note": "Starter shell; no exhaust hardware values populated yet.",
+      "defaultMods": []
+    },
+    {
+      "id": "interior",
+      "name": "Interior / electrical",
+      "note": "Starter shell; no interior/electrical data populated yet.",
+      "defaultMods": []
+    }
+  ],
+  "fasteners": [
+    {
+      "id": "toyota-corolla-e170-1.8l__wheels__wheel-nuts-frontLeft",
+      "vehicleId": "toyota-corolla-e170-1.8l",
+      "system": "Wheels",
+      "subAssembly": "Wheel/hub",
+      "fastenerName": "Wheel lug nuts",
+      "torqueValue": "76 ft-lb / 103 Nm",
+      "angleStages": null,
+      "sourceTier": "community",
+      "sourceNotes": "76 ft-lb is the most-repeated figure across ToyotaNation threads and independent torque-spec-aggregator sites for 2014-2019 Corolla, though at least one source lists 82 ft-lb — a real, if modest, spread. Community tier; verify against this specific car's owner's manual before service.",
+      "conflictFlag": true,
+      "singleUseFlag": false,
+      "zoneId": "frontLeft",
+      "lastVerifiedDate": "2026-09-10",
+      "tighteningPattern": "star-5",
+      "patternNote": "Generic lug tightening sequence only; torque value remains community-sourced for this vehicle and should be verified before service."
+    },
+    {
+      "id": "toyota-corolla-e170-1.8l__wheels__wheel-nuts-frontRight",
+      "vehicleId": "toyota-corolla-e170-1.8l",
+      "system": "Wheels",
+      "subAssembly": "Wheel/hub",
+      "fastenerName": "Wheel lug nuts",
+      "torqueValue": "76 ft-lb / 103 Nm",
+      "angleStages": null,
+      "sourceTier": "community",
+      "sourceNotes": "76 ft-lb is the most-repeated figure across ToyotaNation threads and independent torque-spec-aggregator sites for 2014-2019 Corolla, though at least one source lists 82 ft-lb — a real, if modest, spread. Community tier; verify against this specific car's owner's manual before service.",
+      "conflictFlag": true,
+      "singleUseFlag": false,
+      "zoneId": "frontRight",
+      "lastVerifiedDate": "2026-09-10",
+      "tighteningPattern": "star-5",
+      "patternNote": "Generic lug tightening sequence only; torque value remains community-sourced for this vehicle and should be verified before service."
+    },
+    {
+      "id": "toyota-corolla-e170-1.8l__wheels__wheel-nuts-rearLeft",
+      "vehicleId": "toyota-corolla-e170-1.8l",
+      "system": "Wheels",
+      "subAssembly": "Wheel/hub",
+      "fastenerName": "Wheel lug nuts",
+      "torqueValue": "76 ft-lb / 103 Nm",
+      "angleStages": null,
+      "sourceTier": "community",
+      "sourceNotes": "76 ft-lb is the most-repeated figure across ToyotaNation threads and independent torque-spec-aggregator sites for 2014-2019 Corolla, though at least one source lists 82 ft-lb — a real, if modest, spread. Community tier; verify against this specific car's owner's manual before service.",
+      "conflictFlag": true,
+      "singleUseFlag": false,
+      "zoneId": "rearLeft",
+      "lastVerifiedDate": "2026-09-10",
+      "tighteningPattern": "star-5",
+      "patternNote": "Generic lug tightening sequence only; torque value remains community-sourced for this vehicle and should be verified before service."
+    },
+    {
+      "id": "toyota-corolla-e170-1.8l__wheels__wheel-nuts-rearRight",
+      "vehicleId": "toyota-corolla-e170-1.8l",
+      "system": "Wheels",
+      "subAssembly": "Wheel/hub",
+      "fastenerName": "Wheel lug nuts",
+      "torqueValue": "76 ft-lb / 103 Nm",
+      "angleStages": null,
+      "sourceTier": "community",
+      "sourceNotes": "76 ft-lb is the most-repeated figure across ToyotaNation threads and independent torque-spec-aggregator sites for 2014-2019 Corolla, though at least one source lists 82 ft-lb — a real, if modest, spread. Community tier; verify against this specific car's owner's manual before service.",
+      "conflictFlag": true,
+      "singleUseFlag": false,
+      "zoneId": "rearRight",
+      "lastVerifiedDate": "2026-09-10",
+      "tighteningPattern": "star-5",
+      "patternNote": "Generic lug tightening sequence only; torque value remains community-sourced for this vehicle and should be verified before service."
+    },
+    {
+      "id": "toyota-corolla-e170-1.8l__engine__oil-drain-plug",
+      "vehicleId": "toyota-corolla-e170-1.8l",
+      "system": "Engine",
+      "subAssembly": "Oil pan",
+      "fastenerName": "Oil drain plug",
+      "torqueValue": "27 ft-lb / 37 Nm",
+      "angleStages": null,
+      "sourceTier": "community",
+      "sourceNotes": "Figure matches a circulated Toyota 2ZR-FE workshop-manual excerpt and independent torque-reference sites; not independently checked against a paid TechInfo subscription. Use a new drain plug gasket at every oil change. Community tier; verify before service.",
+      "conflictFlag": false,
+      "singleUseFlag": false,
+      "zoneId": "engine",
+      "lastVerifiedDate": "2026-09-10"
+    }
+  ]
+}

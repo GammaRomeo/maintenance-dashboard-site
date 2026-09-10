@@ -124,6 +124,18 @@ function renderTorquePatternDetail(fastener) {
   return parts.join("");
 }
 
+/**
+ * Chips surfacing conflictFlag/singleUseFlag so users see these safety-relevant
+ * flags inline on the fastener row instead of only in sourceNotes prose.
+ */
+function renderFastenerFlags(fastener) {
+  if (!fastener) return "";
+  const chips = [];
+  if (fastener.conflictFlag) chips.push('<span class="flagChip conflict">Sources conflict — verify before use</span>');
+  if (fastener.singleUseFlag) chips.push('<span class="flagChip singleUse">Single-use — replace on reinstall</span>');
+  return chips.length ? `<div class="fflags">${chips.join("")}</div>` : "";
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     TORQUE_PATTERN_LAYOUTS,
@@ -131,5 +143,6 @@ if (typeof module !== "undefined" && module.exports) {
     computeTighteningOrder,
     renderTighteningPatternSVG,
     renderTorquePatternDetail,
+    renderFastenerFlags,
   };
 }

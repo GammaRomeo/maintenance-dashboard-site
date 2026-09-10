@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance Dashboard — photo reference guide</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#15161a">
+<style>
+  html, body { margin:0; min-height:100%; background:#15161a; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#f5f5f0; }
+  #app { max-width:640px; margin:0 auto; padding:16px 16px 60px; display:none; }
+  #app.ready { display:block; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  header h1 { font-size:17px; margin:0; font-weight:600; }
+  .backLink { color:#2dd4bf; font-size:12.5px; text-decoration:none; display:inline-block; margin-bottom:14px; }
+  .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+
+  .notBuiltBanner { background:#332912; border:1px solid #4a3a1a; border-radius:10px; padding:12px 14px; font-size:12.5px; color:#e0c08a; line-height:1.5; margin-bottom:18px; }
+  .notBuiltBanner strong { color:#f5d38a; }
+
+  h2 { font-size:14.5px; margin:22px 0 8px; color:#f0f0ec; }
+  p { color:#c8cad0; font-size:13px; line-height:1.55; margin:0 0 10px; }
+  ul { margin:0 0 10px; padding-left:20px; color:#c8cad0; font-size:13px; line-height:1.55; }
+  li { margin-bottom:6px; }
+  li strong { color:#e8e8e2; }
+  .zone { margin-bottom:10px; }
+  .zone strong { color:#9fd3c7; }
+
+  #betaGate { position:fixed; inset:0; background:rgba(10,11,13,0.98); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+  #betaGate .box { max-width:420px; background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px; }
+  #betaGate h2 { color:#f5f5f0; font-size:16px; margin:0 0 10px; }
+  #betaGate p { color:#a7abb2; font-size:13px; line-height:1.5; margin:0; }
+
+  #betaContactGate { position:fixed; inset:0; background:rgba(10,11,13,0.98); z-index:250; display:none; align-items:center; justify-content:center; padding:20px; }
+  #betaContactGate .box { width:min(440px, 100%); background:#1a1b1f; border:1px solid #2f3238; border-radius:14px; padding:22px; }
+  #betaContactGate h2 { font-size:16px; margin:0 0 8px; color:#f5f5f0; }
+  #betaContactGate p { color:#c8cad0; font-size:13px; line-height:1.5; margin:0 0 12px; }
+  #betaContactGate .field { margin-bottom:8px; }
+  #betaContactGate .field label { display:block; color:#9a9da3; font-size:12px; margin-bottom:5px; }
+  #betaContactGate select, #betaContactGate input[type=text], #betaContactGate input[type=email] { background:#1e2126; border:1px solid #3a3c40; border-radius:8px; color:#f5f5f0; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
+  #betaContactGate .ctaBtn { background:#2dd4bf; border:none; border-radius:8px; color:#04342c; padding:11px 18px; font-size:13.5px; font-weight:600; cursor:pointer; margin-top:6px; }
+  #bcError { color:#e24b4a; font-size:12px; margin-top:6px; }
+</style>
+</head>
+<body>
+<div id="betaGate">
+  <div class="box">
+    <h2>Beta access required</h2>
+    <p class="betaMessage">Checking access…</p>
+  </div>
+</div>
+<div id="betaContactGate">
+  <div class="box">
+    <h2>Beta tester info</h2>
+    <p id="betaContactIntro">Before using the app, please enter your name and email address. Optionally, you can enter your phone number and specify the device you are using. You will not receive any unwanted messages; this is only for logging parts.</p>
+    <div id="betaContactForm">
+      <div class="field">
+        <label>First name *</label>
+        <input type="text" id="bcFirstName" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label>Last initial *</label>
+        <input type="text" id="bcLastInitial" maxlength="1" autocomplete="family-name">
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="bcEmail" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Device type (optional)</label>
+        <select id="bcDeviceType">
+          <option value="">Not specified</option>
+          <option value="mobile">Mobile</option>
+          <option value="desktop">Desktop</option>
+          <option value="web">Web</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="text" id="bcPhone" autocomplete="tel">
+      </div>
+      <div id="bcError" style="display:none;"></div>
+      <button class="ctaBtn" id="bcSaveBtn" type="button">Continue to app</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" aria-hidden="true">
+  <header>
+    <h1>Photo reference guide</h1>
+    <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
+  </header>
+  <a class="backLink" href="silhouette-explorer.html">&larr; back to diagram view</a>
+
+  <div class="notBuiltBanner">
+    <strong>Not built yet.</strong> Tappable photo-pin navigation — numbered pins on your own photos, linked to torque specs — isn't in the app. This page is prep guidance only: take these photos now so they're ready whenever that feature ships. Nothing you photograph here is uploaded or stored by this page.
+  </div>
+
+  <h2>Why bother</h2>
+  <p>Good photos become a tappable map of your vehicle — numbered pins on real photos of your engine bay, suspension corners, exhaust, or interior, each linked to a torque or maintenance spec. No purchased 3D model required: your own photos are the diagram.</p>
+
+  <h2>Before you start</h2>
+  <ul>
+    <li>Vehicle off, cool, and stable — on level ground with the parking brake set, or on properly rated jack stands (never a jack alone) for anything underneath.</li>
+    <li>Let hot components (exhaust, turbo, engine) cool before getting close with a camera or your hands.</li>
+    <li>Take off loose clothing, jewelry, and lanyards before leaning into an engine bay.</li>
+  </ul>
+
+  <h2>How to shoot</h2>
+  <ul>
+    <li><strong>Even light.</strong> Overcast daylight or shop lighting from two angles works best. A single harsh light throws hard shadows and blows out reflections on bare metal.</li>
+    <li><strong>Wide, then close.</strong> One wide shot showing how the section fits into the whole vehicle, then close-ups of each fastener or component cluster.</li>
+    <li><strong>Square-on, not angled.</strong> Keep the camera close to perpendicular to the surface — an angled or wide-angle shot distorts spacing.</li>
+    <li><strong>Something for scale.</strong> A tape measure, a coin, or a known bolt head in frame helps confirm sizes later.</li>
+    <li><strong>Clean first.</strong> Wipe off heavy grease or grime before shooting — it's usually hiding a stamped size or part number.</li>
+    <li><strong>Zoom in on markings.</strong> Casting numbers, stamped sizes, color-coded heads, and OEM part numbers are worth their own close-up.</li>
+    <li><strong>Multiple angles on anything 3D.</strong> A suspension corner or engine bracket usually needs a front, side, and top-down shot to be unambiguous later.</li>
+  </ul>
+
+  <h2>Zone by zone</h2>
+  <div class="zone"><strong>Engine bay</strong> — one full-bay wide shot first, then section by section (intake side, exhaust side, front accessory drive, firewall side). Prop the hood securely before shooting.</div>
+  <div class="zone"><strong>Suspension / wheel corners</strong> — shoot with the wheel off if you're already doing other work; otherwise get as much of the strut/control-arm assembly as you can through the wheel well opening.</div>
+  <div class="zone"><strong>Exhaust</strong> — shoot in sections (manifold/downpipe, mid-pipe, muffler/tips); note any aftermarket sections since they may not match factory spacing.</div>
+  <div class="zone"><strong>Interior / body</strong> — seat mounting points, seatbelt anchors, and trim fasteners are usually hidden under covers or carpet edges. Photograph both the visible fastener and the cavity underneath if you pull a cover.</div>
+
+  <h2>What happens to these photos</h2>
+  <p>For now: nothing automatic. Keep them yourself. Once photo-pin navigation ships, they'll become the base layer for that vehicle's photo view — pins placed on them and linked to the spec data already researched for that platform.</p>
+</div>
+
+<script src="beta-config.js"></script>
+<script src="beta.js"></script>
+<script>
+const CONSENT_KEY = 'maintenance-dashboard-consent-v1';
+const appEl = document.getElementById('app');
+function showApp() {
+  appEl.classList.add('ready');
+  appEl.setAttribute('aria-hidden', 'false');
+}
+document.getElementById('reshowDisclaimer').addEventListener('click', () => {
+  window.location.href = 'navigator.html';
+});
+betaEnforceGate().then((ok) => { if (ok) requireBetaContactGate(() => { showApp(); }); });
+</script>
+</body>
+</html>

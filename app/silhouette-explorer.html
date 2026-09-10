@@ -15,6 +15,12 @@
   header h1 { font-size:15px; margin:0; font-weight:600; }
   .backLink { color:#2dd4bf; font-size:12.5px; text-decoration:none; }
   .disclaimerLink { color:#5c6067; font-size:10.5px; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+  #vehicleTrustBadgeWrap { padding:0 16px 4px; display:none; }
+  .vehicleTrustBadge { display:inline-block; font-size:11px; font-weight:600; padding:4px 10px; border-radius:8px; line-height:1.4; }
+  .vehicleTrustBadge.starter { background:#332912; color:#e0ab3f; }
+  .vehicleTrustBadge.community { background:#1a2333; color:#6fa8e0; }
+  #photoRefHint { padding:0 16px 6px; }
+  #photoRefHint a { color:#2dd4bf; font-size:11.5px; text-decoration:none; }
   #svgWrap { flex:1; display:flex; align-items:center; justify-content:center; min-height:0; padding:10px; }
   svg#car { height:100%; max-width:100%; }
   .bodyShape { fill:#22242a; stroke:#3a3c40; stroke-width:2; }
@@ -50,6 +56,10 @@
   .badge.community { background:#332912; color:#e0ab3f; }
   .badge.tuner { background:#2a1233; color:#c68fe6; }
   .badge.self-reported { background:#1a2333; color:#6fa8e0; }
+  .fflags { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+  .flagChip { display:inline-block; font-size:10px; padding:2px 7px; border-radius:10px; }
+  .flagChip.conflict { background:#3a1414; color:#f0897a; }
+  .flagChip.singleUse { background:#2a2010; color:#e0c08a; }
   ul.modlist { margin:0 0 10px; padding-left:18px; }
   ul.modlist li { color:#e8e8e2; font-size:13px; margin-bottom:4px; }
   .addrow { display:flex; gap:8px; margin-top:6px; }
@@ -143,6 +153,8 @@
     </div>
     <div class="disclaimerLink" id="reshowDisclaimer">disclaimer</div>
   </header>
+  <div id="vehicleTrustBadgeWrap"></div>
+  <div id="photoRefHint">No 3D model for this vehicle yet — <a href="photo-reference-guide.html">read our photo reference guide →</a></div>
   <div id="svgWrap">
     <svg id="car" viewBox="0 0 300 560" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
@@ -289,6 +301,7 @@ function openZone(zoneId) {
       <div class="fastener">
         <div class="fname">${f.fastenerName}<span class="badge ${f.sourceTier}">${f.sourceTier}</span></div>
         <div class="fspec">${f.torqueValue}</div>
+        ${renderFastenerFlags(f)}
         <div class="fvariant">${f.sourceNotes || ''}</div>
         ${renderTorquePatternDetail(f)}
       </div>`).join('')
@@ -328,8 +341,21 @@ async function init() {
   document.getElementById('vehicleTitle').textContent = `${vehicleEntry.make} ${vehicleEntry.model}`;
   const dataset = await fetch(`../data/vehicles/${vehicleEntry.dataFile}`).then(r => r.json());
   fastenersByZone = groupFastenersByZone(dataset.fasteners);
+  renderVehicleTrustBadge(dataset.vehicle);
   drawSilhouette(vehicleEntry.vehicleClass, vehicleEntry);
   renderLegend();
+}
+
+function renderVehicleTrustBadge(vehicle) {
+  const wrap = document.getElementById('vehicleTrustBadgeWrap');
+  const trust = vehicleTrustBadge(vehicle);
+  if (!trust) {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.style.display = 'block';
+  wrap.innerHTML = `<span class="vehicleTrustBadge ${trust.tone}">${trust.label}</span>`;
 }
 betaEnforceGate().then((ok) => { if (ok) requireBetaContactGate(() => { showApp(); return init(); }); });
 </script>

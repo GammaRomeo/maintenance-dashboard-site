@@ -35,6 +35,23 @@ function filterByTiers(fasteners, tiers) {
 }
 
 /**
+ * Vehicle-level (not per-fastener) trust status, shown wherever a vehicle's
+ * spec data is viewed so a starter/scaffolded profile reads as clearly
+ * unverified even before a tester opens any individual fastener. Every
+ * vehicle in this app mixes at least some community/tuner-tier data (see
+ * per-fastener sourceTier badges), so this never claims a vehicle overall is
+ * "verified" — only whether it still has open research questions (starter)
+ * or not (community). Neither tone implies official/factory verification.
+ */
+function vehicleTrustBadge(vehicle) {
+  if (!vehicle) return null;
+  const hasOpenQuestions = Array.isArray(vehicle.researchQuestions) && vehicle.researchQuestions.length > 0;
+  return hasOpenQuestions
+    ? { tone: "starter", label: "Starter profile — community-sourced, unverified. Confirm every spec before service." }
+    : { tone: "community", label: "Community-sourced data — not officially verified. Confirm every spec before service." };
+}
+
+/**
  * Loads a vehicle dataset JSON file (shape written by scripts/migrate-audi-data.py:
  * { vehicle, zones, fasteners }). Works over http(s) — not file://, since fetch()
  * of local JSON is blocked by browsers under the file: protocol. The 3D explorer's
@@ -47,5 +64,5 @@ async function loadVehicleData(url) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { groupFastenersBySystem, groupFastenersByZone, filterByTiers, loadVehicleData, SOURCE_TIERS };
+  module.exports = { groupFastenersBySystem, groupFastenersByZone, filterByTiers, loadVehicleData, SOURCE_TIERS, vehicleTrustBadge };
 }
