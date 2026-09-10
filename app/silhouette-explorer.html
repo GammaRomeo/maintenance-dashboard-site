@@ -223,12 +223,11 @@ let fastenersByZone = {};
 
 function drawSilhouette(vehicleClass, entry) {
   const svg = document.getElementById('car');
-  // A vehicle can ship a real top-down capture of its own purchased/scanned 3D
-  // model (registry.json topDownImage + topDownZones, rendered once offline from
-  // the actual mesh) — used when present, since it looks more like the real car
-  // than the generic per-class vector shape. Every vehicle without one still gets
-  // the generic shape, which is the whole point of that fallback (see
-  // technical-architecture-schema.md): it needs no purchased 3D model at all.
+  // A vehicle can ship a registry topDownImage + topDownZones, but for v1 those
+  // images must be generic/de-badged or otherwise legally cleared. Real
+  // manufacturer-specific 3D captures are paused pending IP/trademark review.
+  // Every vehicle without a cleared image still gets the generic shape, which is
+  // the point of this fallback: it needs no purchased 3D model at all.
   const useRealImage = entry && entry.topDownImage;
   const zones = useRealImage ? entry.topDownZones : getSilhouetteClass(vehicleClass).zones;
   if (useRealImage) {

@@ -307,10 +307,10 @@ const vehicle3dLink = document.getElementById('vehicle3dLink');
 const previewPane = document.getElementById('previewPane');
 
 // Lightweight, non-interactive teaser of the selected vehicle's diagram-view
-// silhouette — a real top-down capture of the vehicle's own purchased/scanned 3D
-// model when the registry provides one (topDownImage), otherwise the generic
-// per-class shape data/silhouettes.js draws on the full diagram page. No zone
-// numbers/legend here, just the outline; tapping it opens the real diagram view.
+// silhouette. For v1, registry topDownImage entries must be generic/de-badged or
+// otherwise legally cleared; real manufacturer-specific 3D captures are paused
+// pending IP/trademark review. No zone numbers/legend here, just the outline;
+// tapping it opens the real diagram view.
 function renderPreview(vehicleClass, entry) {
   const svg = document.getElementById('previewSvg');
   if (entry && entry.topDownImage) {

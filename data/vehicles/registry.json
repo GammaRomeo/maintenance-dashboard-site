@@ -6,39 +6,40 @@
     "platform": "8V / 8V.5 (MQB)",
     "yearRange": "2013-2020",
     "dataFile": "audi-a3-8v.json",
-    "has3D": true,
+    "has3D": false,
     "vehicleClass": "sedan",
-    "topDownImage": "img/audi-a3-8v-topdown.png",
+    "topDownImage": "img/generic-sedan-topview.svg",
     "topDownZones": {
       "engine": {
-        "cx": 150,
-        "cy": 94
+        "cx": 179,
+        "cy": 55
       },
       "frontLeft": {
-        "cx": 234,
-        "cy": 133
+        "cx": 22,
+        "cy": 140
       },
       "frontRight": {
-        "cx": 66,
-        "cy": 133
+        "cx": 332,
+        "cy": 137
       },
       "rearLeft": {
-        "cx": 234,
-        "cy": 427
+        "cx": 30,
+        "cy": 662
       },
       "rearRight": {
-        "cx": 66,
-        "cy": 427
+        "cx": 325,
+        "cy": 652
       },
       "exhaust": {
-        "cx": 178,
-        "cy": 494
+        "cx": 179,
+        "cy": 745
       },
       "interior": {
-        "cx": 195,
-        "cy": 246
+        "cx": 179,
+        "cy": 390
       }
-    }
+    },
+    "topDownViewBox": "0 0 358.85 789.36"
   },
   {
     "id": "vw-jetta-tdi-2001-manual",

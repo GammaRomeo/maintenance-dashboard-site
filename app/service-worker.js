@@ -8,12 +8,11 @@
 // a working cached copy until it's next online (network-first can't check a kill
 // switch with no network). That's an accepted tradeoff for this pass, not a bug —
 // see beta-worker/README.md "What this does not protect against".
-const CACHE_NAME = 'maintenance-dashboard-shell-v13';
+const CACHE_NAME = 'maintenance-dashboard-shell-v14';
 const SHELL_ASSETS = [
   'navigator.html',
   'vehicle-profile.html',
   'silhouette-explorer.html',
-  'a3-explorer-standalone.html',
   'beta-config.js',
   'beta.js',
   'self-report-merge.js',
@@ -21,7 +20,6 @@ const SHELL_ASSETS = [
   'icon-192.png',
   'icon-512.png',
   'favicon.png',
-  'img/audi-a3-8v-topdown.png',
   '../data/fastener-data.js',
   '../data/mod-taxonomy.js',
   '../data/silhouettes.js',
